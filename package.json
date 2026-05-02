@@ -1,6 +1,7 @@
 {
   "name": "aiproductphoto",
   "version": "0.1.0",
+  "description": "AI Product Photo Generator — Upload a product photo, choose a scene, and preview AI-generated e-commerce product images. Demo MVP for Amazon, Etsy, and Shopify sellers.",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "lucide-react": "^1.14.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
