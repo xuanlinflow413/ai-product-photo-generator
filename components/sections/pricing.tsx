@@ -35,7 +35,7 @@ const plans = [
       "Commercial usage",
     ],
     cta: "Join Waitlist",
-    href: "#",
+    href: "#waitlist",
     highlight: true,
   },
   {
@@ -55,7 +55,7 @@ const plans = [
       "Priority support",
     ],
     cta: "Join Waitlist",
-    href: "#",
+    href: "#waitlist",
     highlight: false,
   },
 ];

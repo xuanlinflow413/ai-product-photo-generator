@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Sparkles } from "lucide-react";
+import { trackCTA } from "@/lib/analytics";
 
 export function Hero() {
   return (
@@ -30,6 +31,7 @@ export function Hero() {
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
               <a
                 href="#demo"
+                onClick={() => trackCTA("hero", "try_demo")}
                 className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700"
               >
                 Try Free Demo
@@ -37,6 +39,7 @@ export function Hero() {
               </a>
               <a
                 href="#how-it-works"
+                onClick={() => trackCTA("hero", "see_how_it_works")}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 See How It Works

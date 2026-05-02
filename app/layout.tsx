@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { GA4Script } from "@/components/ga4-script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,17 +33,26 @@ export const metadata: Metadata = {
       "Preview AI-generated product photos for your online store. Upload a product image, pick a scene, and see how AI can transform your listings.",
     type: "website",
     locale: "en_US",
-    url: "https://ai-product-photo.vercel.app",
+    url: "https://ai-product-photo-generator-three.vercel.app",
+    images: [
+      {
+        url: "https://ai-product-photo-generator-three.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "AI Product Photo Generator — Preview AI-generated scenes for your e-commerce listings",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI Product Photo Generator",
     description:
       "Preview AI-generated product photos for Amazon, Etsy, and Shopify listings.",
+    images: ["https://ai-product-photo-generator-three.vercel.app/og-image.png"],
   },
   robots: "index, follow",
   alternates: {
-    canonical: "https://ai-product-photo.vercel.app",
+    canonical: "https://ai-product-photo-generator-three.vercel.app",
   },
 };
 
@@ -56,6 +66,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <GA4Script />
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
