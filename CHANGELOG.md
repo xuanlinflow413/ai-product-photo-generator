@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.3 — 2025-05-02
+
+### 新增
+- **SEO 基础**
+  - `app/sitemap.ts` — 动态生成 sitemap.xml
+  - `app/robots.ts` — 生成 robots.txt（允许所有爬虫，指向 sitemap）
+  - OG 品牌图片 (`public/og-image.png`) — 1200×630，英文文案，无虚假评分
+  - JSON-LD 结构化数据 (`SoftwareApplication`) — 无虚假 aggregateRating/review
+- **Waitlist 邮箱收集**
+  - `components/sections/waitlist.tsx` — 页面底部独立 Waitlist 区块
+  - 支持 Tally.so 集成（通过 `NEXT_PUBLIC_TALLY_WAITLIST_URL`）
+  - 未配置 Tally URL 时显示 "Waitlist form coming soon"
+  - Pricing 卡片 "Join Waitlist" 按钮滚动到底部 Waitlist 区
+- **GA4 统计预留**
+  - `lib/analytics.ts` — 事件追踪工具函数（条件加载，无 GA ID 时不报错）
+  - `components/ga4-script.tsx` — GA4 脚本加载组件
+  - CTA 点击追踪：Hero Try Demo / See How It Works、Demo Generate、Pricing Join Waitlist
+- **next.config.ts** — 添加 `trailingSlash: true` 优化静态导出
+
+### 优化
+- **Meta 标签完善** — canonical URL、OG、Twitter Card 使用正式域名
+- **布局调整** — page.tsx 引入 Waitlist 组件
+
+### 技术决策
+- 不接真实 AI API、remove.bg、登录、支付、数据库、Dashboard
+- Waitlist 使用 Tally.so 轻量方案，不自建后端
+- GA4 预留代码，待提供 `NEXT_PUBLIC_GA_ID` 后启用
+
+---
+
 ## v0.2 — 2025-05-02
 
 ### 新增
