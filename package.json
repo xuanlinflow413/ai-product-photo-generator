@@ -1,7 +1,6 @@
 {
-  "name": "aiproductphoto",
+  "name": "ai-product-photo",
   "version": "0.1.0",
-  "description": "AI Product Photo Generator — Upload a product photo, choose a scene, and preview AI-generated e-commerce product images. Demo MVP for Amazon, Etsy, and Shopify sellers.",
   "private": true,
   "scripts": {
     "dev": "next dev",
