@@ -10,6 +10,13 @@ export function ToolWorkspace() {
           <Link href="/marketplace-image-fixer/" className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"><p className="text-sm font-semibold text-indigo-600">02 · Marketplace packs</p><h3 className="mt-2 text-xl font-semibold text-slate-900">Batch-ready Amazon, Etsy, eBay files</h3><p className="mt-2 text-sm leading-relaxed text-slate-600">Resize locally, review previews, and export a ZIP with a manifest.</p></Link>
           <Link href="/edit-text-in-product-image/" className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"><p className="text-sm font-semibold text-indigo-600">03 · Edit text</p><h3 className="mt-2 text-xl font-semibold text-slate-900">Replace wording on a product image</h3><p className="mt-2 text-sm leading-relaxed text-slate-600">Select an overlay area, type replacement copy, and export locally.</p></Link>
         </div>
+        <p className="mt-6 text-sm text-slate-600">
+          New to marketplace image preparation? Read the{" "}
+          <Link href="/resize-product-images-for-marketplaces/" className="font-semibold text-indigo-700 hover:text-indigo-900">
+            Amazon, Etsy, and eBay image resizing guide
+          </Link>
+          .
+        </p>
       </div>
     </section>
   );
