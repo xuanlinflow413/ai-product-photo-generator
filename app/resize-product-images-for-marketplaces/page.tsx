@@ -247,11 +247,11 @@ export default function ResizeProductImagesForMarketplacesPage() {
               whether an image will convert.
             </p>
             <Link
-              href="/edit-text-in-product-image/"
+              href="/replace-text-on-product-image/"
               className="mt-6 inline-flex items-center gap-2 font-semibold text-indigo-700 hover:text-indigo-900"
             >
               <FileImage className="h-5 w-5" aria-hidden="true" />
-              Edit wording in an image before resizing
+              Learn how to replace text before resizing
             </Link>
           </div>
         </div>
