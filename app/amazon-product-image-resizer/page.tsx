@@ -9,85 +9,87 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-const canonicalUrl =
-  "https://editimages.app/resize-product-images-for-marketplaces/";
+const canonicalUrl = "https://editimages.app/amazon-product-image-resizer/";
 
 export const metadata: Metadata = {
-  title: "Resize Product Images for Amazon, Etsy and eBay | EditImages",
+  title: "Amazon Product Image Resizer for Batch JPG Packs | EditImages",
   description:
-    "Turn up to 25 product images into organized Amazon, Etsy and eBay JPG packs in your browser, then download one ZIP with a manifest.",
+    "Prepare up to 25 product images as 2000 x 2000 JPG files locally in your browser and download an organized Amazon folder.",
   alternates: { canonical: canonicalUrl },
   openGraph: {
-    title: "Resize Product Images for Amazon, Etsy and eBay | EditImages",
+    title: "Amazon Product Image Resizer for Batch JPG Packs | EditImages",
     description:
-      "Prepare organized Amazon, Etsy and eBay JPG packs locally in your browser.",
+      "Prepare up to 25 product images as an organized 2000 x 2000 JPG Amazon pack in your browser.",
     type: "article",
     url: canonicalUrl,
   },
 };
 
-const presets = [
-  { marketplace: "Amazon", output: "2000 x 2000 JPG" },
-  { marketplace: "Etsy", output: "2000 x 2000 JPG" },
-  { marketplace: "eBay", output: "1600 x 1600 JPG" },
-];
-
 const steps = [
   {
-    title: "Add your product images",
+    title: "Start with clear source photos",
     description:
-      "Open the Marketplace Image Fixer and select up to 25 source files. Clear originals with enough resolution give you more useful exports.",
+      "Use the best originals available. Resizing can standardize the canvas, but it cannot restore missing detail or make a low-resolution source genuinely sharper.",
   },
   {
-    title: "Choose your output packs",
+    title: "Add up to 25 image files",
     description:
-      "Select Amazon, Etsy, eBay, or any combination of the three. Each selected marketplace receives its own folder.",
+      "Keep source filenames easy to associate with each product. Your selected files remain in the browser during this local workflow.",
   },
   {
-    title: "Review before export",
+    title: "Select the Amazon pack",
     description:
-      "Check the previews for unwanted padding, small product presentation, or a composition that does not suit a square canvas.",
+      "The Amazon preset prepares square 2000 x 2000 JPG files. You can also select Etsy or eBay packs when the same products are sold elsewhere.",
   },
   {
-    title: "Download the organized ZIP",
+    title: "Review every preview",
     description:
-      "Export the selected folders together and keep the included manifest with the job for a clear record of what was prepared.",
+      "Check product scale, edges, empty space, and the effect of square framing. Confirm Amazon's current requirements for the image role and category separately.",
+  },
+  {
+    title: "Download the ZIP and manifest",
+    description:
+      "Export the organized folder and keep its manifest with your catalog job. Uploading the finished files to Amazon remains a separate manual step.",
   },
 ];
 
 const faqs = [
   {
-    question: "Are my product images uploaded to a server?",
-    answer:
-      "No. The current Marketplace Image Fixer processes the selected files locally in your browser.",
+    question: "What size does the Amazon preset create?",
+    answer: "The Amazon preset creates 2000 x 2000 JPG files.",
   },
   {
-    question: "How many images can I add?",
-    answer: "You can add up to 25 image files in one session.",
+    question: "Can I resize several product images at once?",
+    answer: "Yes. The current interface accepts up to 25 image files per session.",
   },
   {
-    question: "Which marketplace presets are available?",
+    question: "Are my source images uploaded to a server?",
     answer:
-      "Amazon and Etsy use 2000 x 2000 JPG presets. eBay uses a 1600 x 1600 JPG preset.",
+      "No. The current Marketplace Image Fixer processes selected source files locally in your browser.",
   },
   {
-    question: "Does the export guarantee marketplace approval?",
+    question: "Does this remove or replace the background?",
     answer:
-      "No. The presets prepare dimensions and format, but requirements can change and vary by listing. Check the current marketplace rules before publishing.",
+      "No. This workflow resizes images onto a white square canvas and prepares JPG output files. It does not remove or replace backgrounds.",
   },
   {
-    question: "Does EditImages upload files to a marketplace or sync Shopify?",
+    question: "Will the exported images automatically meet Amazon policy?",
     answer:
-      "No. You download the ZIP and upload the selected files yourself. The current workflow has no marketplace upload or Shopify sync.",
+      "No. The preset does not perform an automatic policy check or guarantee compliance, approval, or listing performance. Review Amazon's current requirements before upload.",
   },
   {
-    question: "Can I edit text before resizing?",
+    question: "Does EditImages upload files to Seller Central?",
     answer:
-      "Yes. Use the separate local product image text editor, export a PNG or JPG, and then add that file to the marketplace workflow.",
+      "No. There is no Seller Central account integration. Download the files and upload them through your normal workflow.",
+  },
+  {
+    question: "Can I prepare Etsy and eBay copies too?",
+    answer:
+      "Yes. The same tool also offers an Etsy 2000 x 2000 JPG preset and an eBay 1600 x 1600 JPG preset.",
   },
 ];
 
-export default function ResizeProductImagesForMarketplacesPage() {
+export default function AmazonProductImageResizerPage() {
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -122,23 +124,22 @@ export default function ResizeProductImagesForMarketplacesPage() {
       <section className="border-b border-slate-200 bg-slate-50">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <p className="text-sm font-semibold uppercase text-indigo-700">
-            Marketplace image workflow
+            Local Amazon image preparation
           </p>
           <h1 className="mt-4 max-w-4xl text-4xl font-bold sm:text-6xl">
-            Resize product images for Amazon, Etsy and eBay
+            Resize product images for an Amazon listing batch
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
-            Prepare the same source photos for several marketplaces without
-            repeating exports in a general design tool. Add a local batch,
-            choose the packs you need, review the results, and download one
-            organized ZIP.
+            Prepare up to 25 source photos as a consistent 2000 x 2000 JPG
+            Amazon pack. Review the previews in your browser, then download an
+            organized ZIP with a manifest.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
             <Link
               href="/marketplace-image-fixer/"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800"
             >
-              Prepare your marketplace image pack
+              Create an Amazon image pack
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </Link>
             <p className="flex items-center gap-2 text-sm text-slate-600">
@@ -146,7 +147,7 @@ export default function ResizeProductImagesForMarketplacesPage() {
                 className="h-5 w-5 shrink-0 text-emerald-700"
                 aria-hidden="true"
               />
-              Up to 25 files, processed in your browser
+              Source files stay in your browser
             </p>
           </div>
         </div>
@@ -154,44 +155,33 @@ export default function ResizeProductImagesForMarketplacesPage() {
 
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:py-20">
         <div>
-          <h2 className="text-3xl font-bold">
-            One source batch, separate marketplace folders
-          </h2>
+          <h2 className="text-3xl font-bold">What the Amazon preset does</h2>
           <p className="mt-5 max-w-2xl leading-7 text-slate-600">
-            Select any combination of Amazon, Etsy, and eBay. EditImages uses
-            the selected output presets locally and prepares platform folders
-            in one ZIP, with a manifest for review.
+            The preset places each selected source image on a white square
+            canvas and exports a 2000 x 2000 JPG. After reviewing the previews,
+            download the Amazon folder in a ZIP with a manifest that records
+            the prepared files.
           </p>
-          <p className="mt-4 max-w-2xl leading-7 text-slate-600">
-            Preparing only one channel? Use the focused{" "}
-            <Link
-              href="/amazon-product-image-resizer/"
-              className="font-semibold text-indigo-700 hover:text-indigo-900"
-            >
-              Amazon product image resizer guide
-            </Link>{" "}
-            for the 2000 x 2000 JPG workflow and pre-upload review points.
-          </p>
-          <div className="mt-8 overflow-hidden rounded-lg border border-slate-200">
-            {presets.map(({ marketplace, output }) => (
-              <div
-                key={marketplace}
-                className="flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-4 last:border-b-0 sm:px-5"
-              >
-                <span className="font-semibold">{marketplace}</span>
-                <span className="text-right text-sm text-slate-600">
-                  {output}
-                </span>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {[
+              ["Batch", "Up to 25 files"],
+              ["Output", "2000 x 2000 JPG"],
+              ["Delivery", "ZIP + manifest"],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-slate-200 p-5">
+                <p className="text-sm text-slate-500">{label}</p>
+                <p className="mt-1 font-bold">{value}</p>
               </div>
             ))}
           </div>
         </div>
         <aside className="border-l-4 border-amber-400 bg-amber-50 p-6 text-amber-950">
-          <h2 className="text-lg font-bold">Preset, not a guarantee</h2>
+          <h2 className="text-lg font-bold">A production preset, not approval</h2>
           <p className="mt-3 text-sm leading-6">
-            These dimensions are production shortcuts. Marketplace rules can
-            change and may vary by image role or category. Review every export
-            against current listing requirements before publishing.
+            EditImages does not perform an Amazon policy audit or guarantee
+            approval. Requirements can change and vary by image role or
+            category, so compare each export with current Amazon guidance
+            before publishing.
           </p>
         </aside>
       </section>
@@ -199,11 +189,14 @@ export default function ResizeProductImagesForMarketplacesPage() {
       <section className="border-y border-slate-200 bg-slate-50">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
           <h2 className="text-3xl font-bold">
-            How to prepare a marketplace image pack
+            How to resize an Amazon product image batch
           </h2>
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 md:grid-cols-2">
             {steps.map((step, index) => (
-              <article key={step.title} className="bg-white p-6 sm:p-8">
+              <article
+                key={step.title}
+                className="bg-white p-6 sm:p-8 md:last:col-span-2"
+              >
                 <p className="text-sm font-semibold text-indigo-700">
                   Step {index + 1}
                 </p>
@@ -220,13 +213,13 @@ export default function ResizeProductImagesForMarketplacesPage() {
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-3xl font-bold">When this workflow is useful</h2>
+            <h2 className="text-3xl font-bold">Review before you upload</h2>
             <div className="mt-6 space-y-4 text-slate-600">
               {[
-                "Opening a second sales channel with an existing photo library.",
-                "Refreshing a group of listings with consistent output files.",
-                "Handing image preparation to another operator with a manifest.",
-                "Preparing source photos manually before marketplace upload.",
+                "Check product scale, edges, framing, and empty space.",
+                "Verify the current rules for the image role and product category.",
+                "Confirm that source labels and promotional wording are current.",
+                "Keep the manifest with the catalog job for reference.",
               ].map((item) => (
                 <p key={item} className="flex gap-3 leading-7">
                   <CheckCircle2
@@ -239,20 +232,30 @@ export default function ResizeProductImagesForMarketplacesPage() {
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-bold">Keep the final review human</h2>
+            <h2 className="text-3xl font-bold">Prepare the source first</h2>
             <p className="mt-6 leading-7 text-slate-600">
-              EditImages handles deterministic resizing and format
-              preparation. It does not evaluate marketplace policy, image
-              quality, category restrictions, trademarks, accessibility, or
-              whether an image will convert.
+              If an image contains an outdated label or short line of copy, use
+              the local text overlay workflow before resizing. It does not
+              automatically detect old text, match fonts, or restore the hidden
+              background.
             </p>
             <Link
               href="/edit-text-in-product-image/"
               className="mt-6 inline-flex items-center gap-2 font-semibold text-indigo-700 hover:text-indigo-900"
             >
               <FileImage className="h-5 w-5" aria-hidden="true" />
-              Edit wording in an image before resizing
+              Edit text in a product image
             </Link>
+            <p className="mt-8 leading-7 text-slate-600">
+              Need assets for more than one sales channel? Follow the{" "}
+              <Link
+                href="/resize-product-images-for-marketplaces/"
+                className="font-semibold text-indigo-700 hover:text-indigo-900"
+              >
+                multi-marketplace image resizing workflow
+              </Link>{" "}
+              to prepare Amazon, Etsy, and eBay folders from the same batch.
+            </p>
           </div>
         </div>
       </section>
@@ -262,17 +265,17 @@ export default function ResizeProductImagesForMarketplacesPage() {
           <div className="max-w-2xl">
             <p className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
               <FolderTree className="h-5 w-5" aria-hidden="true" />
-              Local marketplace pack workflow
+              Local batch workflow
             </p>
             <h2 className="mt-2 text-2xl font-bold">
-              Prepare the files, then review before publishing
+              Prepare an organized Amazon image folder
             </h2>
           </div>
           <Link
             href="/marketplace-image-fixer/"
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800"
           >
-            Open Marketplace Image Fixer
+            Prepare the batch locally
             <Archive className="h-5 w-5" aria-hidden="true" />
           </Link>
         </div>
