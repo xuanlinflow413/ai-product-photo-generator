@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function ToolWorkspace() {
   return (
-    <section className="bg-slate-50 px-4 py-14">
+    <section id="workflows" className="bg-slate-50 px-4 py-14">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 max-w-2xl"><p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Focused workflows</p><h2 className="mt-2 text-3xl font-bold text-slate-900">Product image work, without the tool pile</h2><p className="mt-3 text-slate-600">Use the right workflow for the job: preview product scenes, prepare marketplace packs, or edit wording directly in a local browser canvas.</p></div>
         <div className="grid gap-5 md:grid-cols-3">

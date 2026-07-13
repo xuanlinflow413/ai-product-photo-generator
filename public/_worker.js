@@ -28,6 +28,23 @@ async function parseObject(request) {
   return body;
 }
 
+async function handleEarlyAccess(request, env) {
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, { allow: "POST" });
+  if (!env.DB) return json({ error: "Early access signup is not configured", code: "SIGNUP_UNAVAILABLE" }, 503);
+  const body = await parseObject(request);
+  if (body.company) return json({ ok: true }, 202);
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const plan = body.plan === "seller" ? "seller" : "undecided";
+  const useCase = typeof body.useCase === "string" ? body.useCase.trim().slice(0, 500) : "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return json({ error: "Valid email required" }, 400);
+  }
+  const id = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO early_access_leads(id,email,plan_id,use_case,source,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET plan_id=excluded.plan_id,use_case=excluded.use_case,source=excluded.source")
+    .bind(id, email, plan, useCase, "homepage_pricing", now()).run();
+  return json({ ok: true }, 201);
+}
+
 function allowsDevelopmentLogin(request, env) {
   if (env.AUTH_MODE !== "development") return false;
   const hostname = new URL(request.url).hostname;
@@ -119,6 +136,7 @@ async function handleApi(request, env) {
   const path = url.pathname.replace(/\/$/, "") || "/";
   if (path === "/api/health") return json({ ok: true, paymentProvider: env.PAYMENT_PROVIDER || "unconfigured" });
   if (path === "/api/plans") return json({ plans: PLANS, checkoutAvailable: env.PAYMENT_PROVIDER === "mock" });
+  if (path === "/api/early-access") return handleEarlyAccess(request, env);
 
   const authResponse = await handleAuth(request, env, path, url);
   if (authResponse) return authResponse;

@@ -12,7 +12,7 @@ class Statement {
 }
 
 class MemoryD1 {
-  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); }
+  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); this.leads = new Map(); }
   prepare(sql) { return new Statement(this, sql); }
   async batch(statements) { for (const statement of statements) await statement.run(); }
   execute(sql, values) {
@@ -36,6 +36,11 @@ class MemoryD1 {
     if (sql.startsWith("UPDATE users SET credits=credits-1")) { const user = this.users.get(values[0]); if (user.credits < 1) return 0; user.credits -= 1; return 1; }
     if (sql.startsWith("UPDATE users SET credits=credits+1")) { this.users.get(values[0]).credits += 1; return 1; }
     if (sql.startsWith("INSERT INTO export_jobs")) { this.exports.set(values[0], { id: values[0], user_id: values[1], idempotency_key: values[2], status: sql.includes("'completed'") ? "completed" : "failed", credit_delta: sql.includes("-1") ? -1 : 0, created_at: values[3] }); return 1; }
+    if (sql.startsWith("INSERT INTO early_access_leads")) {
+      const existing = this.leads.get(values[1]);
+      this.leads.set(values[1], { id: existing?.id ?? values[0], email: values[1], plan_id: values[2], use_case: values[3], source: values[4], created_at: existing?.created_at ?? values[5] });
+      return 1;
+    }
     throw new Error(`Unhandled SQL: ${sql}`);
   }
 }
@@ -53,6 +58,24 @@ async function login(env) {
 test("protected account rejects anonymous access", async () => {
   const response = await call(makeEnv(), "/api/account");
   assert.equal(response.status, 401);
+});
+
+test("early access signup validates and persists purchase intent without authentication", async () => {
+  const env = makeEnv();
+  assert.equal((await call(env, "/api/early-access", body({ email: "not-an-email" }))).status, 400);
+  const first = await call(env, "/api/early-access", body({ email: " Seller@Example.com ", plan: "seller", useCase: "Weekly marketplace batches" }));
+  assert.equal(first.status, 201);
+  assert.equal(env.DB.leads.get("seller@example.com").plan_id, "seller");
+  assert.equal(env.DB.leads.get("seller@example.com").use_case, "Weekly marketplace batches");
+  assert.equal((await call(env, "/api/early-access", body({ email: "seller@example.com", plan: "undecided", useCase: "High-resolution exports" }))).status, 201);
+  assert.equal(env.DB.leads.size, 1);
+  assert.equal(env.DB.leads.get("seller@example.com").plan_id, "undecided");
+});
+
+test("early access signup fails closed without a database binding", async () => {
+  const response = await call(makeEnv({ DB: undefined }), "/api/early-access", body({ email: "seller@example.com" }));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "SIGNUP_UNAVAILABLE");
 });
 
 test("disabled auth mode rejects development login on localhost", async () => {

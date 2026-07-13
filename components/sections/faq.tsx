@@ -17,7 +17,7 @@ const faqs = [
   {
     question: "When will real AI generation be available?",
     answer:
-      "We are building the full AI generation pipeline. Pro and Business plans will include real AI-powered product photo generation. Join the waitlist to get early access.",
+      "Real AI generation is not available today. The current pricing test focuses on seller interest in faster listing-preparation workflows; register your interest if you want updates.",
   },
   {
     question: "Can I use the demo-generated images for my store?",
@@ -42,17 +42,17 @@ const faqs = [
   {
     question: "How much will the full version cost?",
     answer:
-      "The Pro plan is planned at $12/month for 200 generations, and the Business plan at $29/month for unlimited generations and batch processing. A free tier will always be available for preview.",
+      "The local tools remain free. We are testing interest in a proposed $9/month Seller plan for saved workflow history, larger batch packs, and priority exports. It is not available to purchase and no payment is collected today.",
   },
   {
     question: "Can I get a refund?",
     answer:
-      "Yes. When paid plans launch, we will offer a 7-day money-back guarantee if you are not satisfied.",
+      "There is nothing to refund today because EditImages does not collect payment. Any future paid launch will publish its actual refund terms before checkout.",
   },
   {
     question: "How do I join the waitlist?",
     answer:
-      "Click the 'Join Waitlist' button on any paid plan. We will email you as soon as real AI generation is ready.",
+      "Click 'Register paid interest,' then submit your email and whether you would consider the proposed Seller price. Your response is stored as product research and does not create an order or charge you.",
   },
 ];
 

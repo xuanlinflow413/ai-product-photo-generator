@@ -18,6 +18,12 @@ The Next.js site remains an `output: "export"` static build. Runtime account and
 - Credits are granted only by a valid signed `checkout.completed` webhook. Duplicate webhook IDs are idempotent.
 - Failed export records cost zero. A completed server-side export consumes one credit once per idempotency key. The current browser ZIP does not call that endpoint.
 
+## Commercial validation funnel
+
+The homepage keeps the working local tools free and presents a clearly labeled, non-purchasable `$9/month` Seller pricing test. The `Register paid interest` CTA submits email, price intent, and an optional workflow problem to `POST /api/early-access`; the Pages Worker validates and upserts the lead in D1 instead of showing a false success state. GA4 records the pricing CTA and form success/failure when `NEXT_PUBLIC_GA_ID` is configured.
+
+Apply `migrations/0001_billing.sql` to the EditImages D1 database before deploying this change. The endpoint fails closed with `503 SIGNUP_UNAVAILABLE` when no `DB` binding exists. Real checkout remains disabled until a payment provider adapter is implemented and the following external inputs exist: a provider account, an approved product/price ID, webhook signing secret, production session/OAuth configuration, and the EditImages D1 binding. Do not set `PAYMENT_PROVIDER=mock` or `AUTH_MODE=development` in production.
+
 Local setup (safe placeholders only):
 
 ```bash
