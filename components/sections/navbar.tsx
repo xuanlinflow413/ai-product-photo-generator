@@ -19,7 +19,7 @@ export function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-slate-900">
           <Camera className="h-6 w-6 text-indigo-600" />
-          <span className="text-lg font-semibold">AI Product Photo</span>
+          <span className="text-lg font-semibold">EditImages</span>
         </Link>
 
         {/* Desktop nav */}
@@ -33,6 +33,13 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/marketplace-image-fixer/"
+            className="text-sm font-medium text-slate-600 hover:text-indigo-600"
+          >
+            Image Packs
+          </Link>
+          <Link href="/edit-text-in-product-image/" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Edit Text</Link>
           <a
             href="#demo"
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -69,6 +76,14 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
+            <Link
+              href="/marketplace-image-fixer/"
+              className="text-sm font-medium text-slate-600 hover:text-indigo-600"
+              onClick={() => setMobileOpen(false)}
+            >
+              Image Packs
+            </Link>
+            <Link href="/edit-text-in-product-image/" className="text-sm font-medium text-slate-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>Edit Text</Link>
             <a
               href="#demo"
               className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-indigo-700"

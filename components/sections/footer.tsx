@@ -7,7 +7,7 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2 text-slate-700">
             <Camera className="h-5 w-5 text-indigo-600" />
-            <span className="font-semibold">AI Product Photo</span>
+            <span className="font-semibold">EditImages</span>
           </div>
 
           <nav className="flex gap-6 text-sm text-slate-500">
@@ -23,12 +23,16 @@ export function Footer() {
             <a href="#faq" className="hover:text-indigo-600">
               FAQ
             </a>
+            <a href="/marketplace-image-fixer/" className="hover:text-indigo-600">
+              Image Packs
+            </a>
+            <a href="/edit-text-in-product-image/" className="hover:text-indigo-600">Edit Text</a>
           </nav>
         </div>
 
         <div className="mt-6 text-center text-xs text-slate-400 sm:text-left">
           <p>
-            © {new Date().getFullYear()} AI Product Photo Generator. All
+            © {new Date().getFullYear()} EditImages. All
             rights reserved.
           </p>
           <p className="mt-1">

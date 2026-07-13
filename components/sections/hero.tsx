@@ -12,20 +12,20 @@ export function Hero() {
           <div className="text-center lg:text-left">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700">
               <Sparkles className="h-4 w-4" />
-              AI product photo generator — demo available
+              The product image workspace for e-commerce sellers
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-              Professional Product Photos{" "}
-              <span className="text-indigo-600">Without a Studio</span>
+              One Workspace for{" "}
+              <span className="text-indigo-600">Better Product Images</span>
             </h1>
 
             <p className="mt-6 text-lg leading-relaxed text-slate-600">
-              Upload any product image and preview AI-generated scenes for{" "}
+              Preview product scenes, prepare consistent marketplace packs, and edit image text for{" "}
               <span className="font-medium text-slate-900">Amazon</span>,{" "}
               <span className="font-medium text-slate-900">Etsy</span>, and{" "}
               <span className="font-medium text-slate-900">Shopify</span>{" "}
-              listings. Free demo — no account required.
+              listings. Focused workflows, batch processing, and local-first tools.
             </p>
 
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:items-start">

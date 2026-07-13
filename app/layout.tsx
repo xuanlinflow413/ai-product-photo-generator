@@ -14,9 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Product Photo Generator — Create E-commerce Images",
+  metadataBase: new URL("https://editimages.app"),
+  title: "EditImages — Product Image Workspace for E-commerce Sellers",
   description:
-    "Preview AI-generated product photos for your online store. Upload a product image, pick a scene, and see how AI can transform your listings. Built for Amazon, Etsy, and Shopify sellers.",
+    "Create product scenes, prepare marketplace image packs, and edit text in product images with focused tools for e-commerce sellers.",
   keywords: [
     "AI product photo generator",
     "product photo generator",
@@ -26,33 +27,36 @@ export const metadata: Metadata = {
     "Shopify product image generator",
     "lifestyle product photo generator",
     "AI product photography tool",
+    "marketplace image fixer",
+    "Amazon image pack",
+    "bulk product image resize",
   ],
   openGraph: {
-    title: "AI Product Photo Generator — Create E-commerce Images",
+    title: "EditImages — Product Image Workspace for E-commerce Sellers",
     description:
-      "Preview AI-generated product photos for your online store. Upload a product image, pick a scene, and see how AI can transform your listings.",
+      "Create product scenes, prepare marketplace image packs, and edit text in product images.",
     type: "website",
     locale: "en_US",
-    url: "https://ai-product-photo-generator-three.vercel.app",
+    url: "https://editimages.app",
     images: [
       {
-        url: "https://ai-product-photo-generator-three.vercel.app/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "AI Product Photo Generator — Preview AI-generated scenes for your e-commerce listings",
+        alt: "EditImages product image workspace",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Product Photo Generator",
+    title: "EditImages",
     description:
       "Preview AI-generated product photos for Amazon, Etsy, and Shopify listings.",
-    images: ["https://ai-product-photo-generator-three.vercel.app/og-image.png"],
+    images: ["/og-image.png"],
   },
   robots: "index, follow",
   alternates: {
-    canonical: "https://ai-product-photo-generator-three.vercel.app",
+    canonical: "/",
   },
 };
 

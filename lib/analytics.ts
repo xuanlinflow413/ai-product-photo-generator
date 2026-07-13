@@ -3,6 +3,8 @@
 
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+type Gtag = (command: "event", eventName: string, params?: Record<string, string | number | boolean>) => void;
+
 /**
  * 追踪自定义事件
  * 如果没有配置 GA4 ID，函数静默返回，不报错
@@ -14,7 +16,7 @@ export function trackEvent(
   if (typeof window === "undefined") return;
   if (!GA_ID) return;
 
-  const gtag = (window as any).gtag;
+  const gtag = (window as Window & { gtag?: Gtag }).gtag;
   if (typeof gtag === "function") {
     gtag("event", eventName, params);
   }

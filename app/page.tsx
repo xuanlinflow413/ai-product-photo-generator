@@ -6,12 +6,13 @@ import { Pricing } from "@/components/sections/pricing";
 import { FAQ } from "@/components/sections/faq";
 import { Waitlist } from "@/components/sections/waitlist";
 import { Footer } from "@/components/sections/footer";
+import { ToolWorkspace } from "@/components/sections/tool-workspace";
 
 export default function Home() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "AI Product Photo Generator",
+    name: "EditImages",
     applicationCategory: "DesignApplication",
     operatingSystem: "Web",
     offers: {
@@ -20,8 +21,8 @@ export default function Home() {
       priceCurrency: "USD",
     },
     description:
-      "Preview AI-generated product photos for your online store. Upload a product image, pick a scene, and see how AI can transform your listings.",
-    url: "https://ai-product-photo-generator-three.vercel.app",
+      "A focused product image workspace for e-commerce sellers, with local batch preparation and text editing tools.",
+    url: "https://editimages.app",
   };
 
   return (
@@ -33,6 +34,7 @@ export default function Home() {
       <main className="flex min-h-screen flex-col">
         <Navbar />
         <Hero />
+        <ToolWorkspace />
         <HowItWorks />
         <Demo />
         <Pricing />

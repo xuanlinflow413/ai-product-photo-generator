@@ -1,5 +1,30 @@
 # Changelog
 
+## Account and billing development skeleton
+
+### Added
+- Cloudflare Pages Worker routes for development login/logout/session restoration, protected account data, plans, checkout contract, signed payment webhooks, and idempotent export accounting.
+- D1 migration for users, orders, webhook events, and export jobs.
+- `/login/` and `/account/` static pages connected to the runtime Worker rather than mocked browser state.
+- Worker integration tests covering authorization, session restoration/logout, provider-unavailable checkout, webhook signature/idempotency, and failure-safe export credits.
+
+### Architecture and safety
+- Preserved the Next.js static export and existing browser ZIP workflow.
+- Payment success never trusts frontend query parameters; only the signed webhook grants credits.
+- No OAuth, real payment, production D1, deployment, DNS, token, cookie, or secret was copied from KindReply or contacted.
+
+## Marketplace Image Pack MVP
+
+### Added
+- `/marketplace-image-fixer/` for local batch image preparation.
+- Amazon, Etsy, and eBay platform selections with deterministic square canvas and JPG output rules.
+- Real browser-generated ZIP downloads with per-platform folders and `manifest.json`.
+- Explicit scope messaging for capabilities not implemented yet: background removal, generative scenes, and visual compliance judgments.
+
+### Technical notes
+- Added `jszip` for client-side archive generation; no image data is sent to a third party.
+- Run with `npm run dev`, then visit `/marketplace-image-fixer/`.
+
 ## v0.3 — 2025-05-02
 
 ### 新增
