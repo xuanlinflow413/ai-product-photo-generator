@@ -34,12 +34,3 @@ CREATE TABLE IF NOT EXISTS export_jobs (
   UNIQUE (user_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS idx_exports_user ON export_jobs(user_id, created_at DESC);
-
-CREATE TABLE IF NOT EXISTS early_access_leads (
-  id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  plan_id TEXT NOT NULL CHECK (plan_id IN ('seller', 'undecided')),
-  use_case TEXT NOT NULL DEFAULT '',
-  source TEXT NOT NULL,
-  created_at TEXT NOT NULL
-);

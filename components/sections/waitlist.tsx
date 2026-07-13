@@ -20,7 +20,7 @@ export function Waitlist() {
       const response = await fetch("/api/early-access", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, plan, useCase, company: form.get("company") }),
+        body: JSON.stringify({ email, plan, useCase, company: form.get("company"), website: form.get("website") }),
       });
       if (!response.ok) {
         throw new Error(response.status === 503
@@ -79,6 +79,7 @@ export function Waitlist() {
                 <textarea value={useCase} onChange={(event) => setUseCase(event.target.value)} maxLength={500} rows={2} className="mt-2 w-full rounded-xl border-0 bg-white px-4 py-3 text-slate-900 outline-none ring-2 ring-white/30 focus:ring-white" />
               </label>
               <input name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
+              <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
               <button type="submit" disabled={status === "submitting"} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-3 text-base font-semibold text-indigo-600 transition hover:bg-indigo-50 disabled:cursor-wait disabled:opacity-70">
                 {status === "submitting" ? "Saving…" : "Register my interest"}
                 <ArrowRight className="h-5 w-5" />

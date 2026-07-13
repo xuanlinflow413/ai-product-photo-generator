@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import worker from "../public/_worker.js";
 import { signWebhook } from "../public/shared/billing-core.mjs";
@@ -12,7 +14,7 @@ class Statement {
 }
 
 class MemoryD1 {
-  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); this.leads = new Map(); }
+  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); this.leads = new Map(); this.rateLimits = new Map(); }
   prepare(sql) { return new Statement(this, sql); }
   async batch(statements) { for (const statement of statements) await statement.run(); }
   execute(sql, values) {
@@ -41,13 +43,24 @@ class MemoryD1 {
       this.leads.set(values[1], { id: existing?.id ?? values[0], email: values[1], plan_id: values[2], use_case: values[3], source: values[4], created_at: existing?.created_at ?? values[5] });
       return 1;
     }
+    if (sql.startsWith("INSERT INTO early_access_rate_limits")) {
+      const count = (this.rateLimits.get(values[0])?.request_count ?? 0) + 1;
+      const bucket = { request_count: count, expires_at: values[1] };
+      this.rateLimits.set(values[0], bucket);
+      return bucket;
+    }
+    if (sql.startsWith("DELETE FROM early_access_rate_limits")) {
+      for (const [key, bucket] of this.rateLimits) if (bucket.expires_at < values[0]) this.rateLimits.delete(key);
+      return 1;
+    }
     throw new Error(`Unhandled SQL: ${sql}`);
   }
 }
 
 const makeEnv = (overrides = {}) => ({ DB: new MemoryD1(), SESSION_SECRET: "test-session-secret", WEBHOOK_SECRET: "test-webhook-secret", AUTH_MODE: "development", PAYMENT_PROVIDER: "unconfigured", ASSETS: { fetch: () => new Response("asset-ok") }, ...overrides });
 const call = (env, path, init = {}) => worker.fetch(new Request(`http://localhost${path}`, init), env);
-const body = (value) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(value) });
+const body = (value, headers = {}) => ({ method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.10", ...headers }, body: JSON.stringify(value) });
+const lead = (overrides = {}) => ({ email: "seller@example.com", plan: "seller", useCase: "Weekly marketplace batches", company: "", website: "", ...overrides });
 
 async function login(env) {
   const response = await call(env, "/api/auth/dev-login", body({ email: "developer@example.test" }));
@@ -60,22 +73,81 @@ test("protected account rejects anonymous access", async () => {
   assert.equal(response.status, 401);
 });
 
-test("early access signup validates and persists purchase intent without authentication", async () => {
+test("early access signup persists a valid purchase intent without authentication", async () => {
   const env = makeEnv();
-  assert.equal((await call(env, "/api/early-access", body({ email: "not-an-email" }))).status, 400);
-  const first = await call(env, "/api/early-access", body({ email: " Seller@Example.com ", plan: "seller", useCase: "Weekly marketplace batches" }));
+  const first = await call(env, "/api/early-access", body(lead({ email: " Seller@Example.com " })));
   assert.equal(first.status, 201);
   assert.equal(env.DB.leads.get("seller@example.com").plan_id, "seller");
   assert.equal(env.DB.leads.get("seller@example.com").use_case, "Weekly marketplace batches");
-  assert.equal((await call(env, "/api/early-access", body({ email: "seller@example.com", plan: "undecided", useCase: "High-resolution exports" }))).status, 201);
+});
+
+test("early access signup rejects an invalid email", async () => {
+  const response = await call(makeEnv(), "/api/early-access", body(lead({ email: "not-an-email" })));
+  assert.equal(response.status, 400);
+});
+
+test("early access signup upserts a duplicate email", async () => {
+  const env = makeEnv();
+  assert.equal((await call(env, "/api/early-access", body(lead()))).status, 201);
+  assert.equal((await call(env, "/api/early-access", body(lead({ plan: "undecided", useCase: "High-resolution exports" })))).status, 201);
   assert.equal(env.DB.leads.size, 1);
   assert.equal(env.DB.leads.get("seller@example.com").plan_id, "undecided");
+  assert.equal(env.DB.leads.get("seller@example.com").use_case, "High-resolution exports");
 });
 
 test("early access signup fails closed without a database binding", async () => {
-  const response = await call(makeEnv({ DB: undefined }), "/api/early-access", body({ email: "seller@example.com" }));
+  const response = await call(makeEnv({ DB: undefined }), "/api/early-access", body(lead()));
   assert.equal(response.status, 503);
   assert.equal((await response.json()).code, "SIGNUP_UNAVAILABLE");
+});
+
+test("early access signup accepts honeypot bots without writing", async () => {
+  const env = makeEnv();
+  const response = await call(env, "/api/early-access", body(lead({ website: "https://spam.example" })));
+  assert.equal(response.status, 202);
+  assert.equal(env.DB.leads.size, 0);
+  assert.equal(env.DB.rateLimits.size, 0);
+});
+
+test("early access signup rate limits the sixth request from one Cloudflare IP", async () => {
+  const env = makeEnv();
+  for (let index = 0; index < 5; index += 1) {
+    const response = await call(env, "/api/early-access", body(lead({ email: `seller${index}@example.com` })));
+    assert.equal(response.status, 201);
+  }
+  const limited = await call(env, "/api/early-access", body(lead({ email: "seller5@example.com" })));
+  assert.equal(limited.status, 429);
+  assert.ok(Number(limited.headers.get("retry-after")) > 0);
+  assert.equal(env.DB.leads.size, 5);
+});
+
+test("early access signup fails closed without Cloudflare client identity", async () => {
+  const response = await call(makeEnv(), "/api/early-access", body(lead(), { "cf-connecting-ip": "" }));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "SIGNUP_UNAVAILABLE");
+});
+
+test("early access signup rejects oversized and non-JSON bodies", async () => {
+  const env = makeEnv();
+  const oversized = await call(env, "/api/early-access", body(lead({ useCase: "x".repeat(2100) })));
+  assert.equal(oversized.status, 413);
+  const nonJson = await call(env, "/api/early-access", { method: "POST", headers: { "content-type": "text/plain", "cf-connecting-ip": "203.0.113.10" }, body: "hello" });
+  assert.equal(nonJson.status, 415);
+});
+
+test("0002 migration applies after 0001 without losing existing billing data", async () => {
+  const db = new DatabaseSync(":memory:");
+  const migration1 = await readFile(new URL("../migrations/0001_billing.sql", import.meta.url), "utf8");
+  const migration2 = await readFile(new URL("../migrations/0002_early_access.sql", import.meta.url), "utf8");
+  db.exec(migration1);
+  db.prepare("INSERT INTO users(id,email,created_at) VALUES(?,?,?)").run("existing-user", "existing@example.com", "2026-07-13T00:00:00.000Z");
+  db.exec(migration2);
+  assert.equal(db.prepare("SELECT email FROM users WHERE id=?").get("existing-user").email, "existing@example.com");
+  assert.deepEqual(
+    db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('early_access_leads','early_access_rate_limits') ORDER BY name").all().map((row) => row.name),
+    ["early_access_leads", "early_access_rate_limits"],
+  );
+  db.close();
 });
 
 test("disabled auth mode rejects development login on localhost", async () => {

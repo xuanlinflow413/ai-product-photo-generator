@@ -10,7 +10,7 @@ The local MVP only resizes onto a white canvas and converts to JPG. It does not 
 
 ## Account, credits, and payment skeleton
 
-The Next.js site remains an `output: "export"` static build. Runtime account and billing routes are implemented by the Cloudflare Pages Worker in `public/_worker.js`, backed by a development D1 database using `migrations/0001_billing.sql`.
+The Next.js site remains an `output: "export"` static build. Runtime account and billing routes are implemented by the Cloudflare Pages Worker in `public/_worker.js`, backed by a development D1 database using the ordered SQL files under `migrations/`.
 
 - Development login is available only for a local host when an explicit local override sets `AUTH_MODE=development`; the committed Pages configuration sets `AUTH_MODE=disabled`, and the Worker rejects development login on non-local hostnames even if a deployment environment is misconfigured.
 - `/account/` is protected by an HttpOnly signed session and displays real D1-backed empty states, orders, exports, plan, and balance.
@@ -22,7 +22,11 @@ The Next.js site remains an `output: "export"` static build. Runtime account and
 
 The homepage keeps the working local tools free and presents a clearly labeled, non-purchasable `$9/month` Seller pricing test. The `Register paid interest` CTA submits email, price intent, and an optional workflow problem to `POST /api/early-access`; the Pages Worker validates and upserts the lead in D1 instead of showing a false success state. GA4 records the pricing CTA and form success/failure when `NEXT_PUBLIC_GA_ID` is configured.
 
-Apply `migrations/0001_billing.sql` to the EditImages D1 database before deploying this change. The endpoint fails closed with `503 SIGNUP_UNAVAILABLE` when no `DB` binding exists. Real checkout remains disabled until a payment provider adapter is implemented and the following external inputs exist: a provider account, an approved product/price ID, webhook signing secret, production session/OAuth configuration, and the EditImages D1 binding. Do not set `PAYMENT_PROVIDER=mock` or `AUTH_MODE=development` in production.
+Apply `migrations/0001_billing.sql` first and then the incremental `migrations/0002_early_access.sql` to the EditImages D1 database before deploying this change. Do not edit or reapply `0001` on a database that has already recorded it. This repository does not run production migrations automatically.
+
+The anonymous endpoint fails closed with `503 SIGNUP_UNAVAILABLE` when the `DB` binding or Cloudflare-provided `CF-Connecting-IP` is unavailable. The Worker enforces JSON-only requests, a 2 KiB body limit, two server-validated honeypot fields, and a D1-backed fixed window of five requests per Cloudflare client IP per hour. The IP is SHA-256 hashed with the window start before storage; raw IP addresses are not persisted. Cloudflare Pages Worker isolates and module memory are not globally durable, so an in-memory counter would only be a best-effort per-isolate guard. D1 makes the counter shared and its single-statement upsert atomic, at the cost of a D1 operation per accepted non-bot attempt. The bounded opportunistic cleanup may leave expired buckets temporarily, but expired buckets never affect a new window.
+
+Real checkout remains disabled until a payment provider adapter is implemented and the following external inputs exist: a provider account, an approved product/price ID, webhook signing secret, production session/OAuth configuration, and the EditImages D1 binding. Do not set `PAYMENT_PROVIDER=mock` or `AUTH_MODE=development` in production.
 
 Local setup (safe placeholders only):
 

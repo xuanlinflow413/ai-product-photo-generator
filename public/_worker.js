@@ -12,6 +12,9 @@ import {
 const now = () => new Date().toISOString();
 const first = (env, sql, ...bindings) => env.DB.prepare(sql).bind(...bindings).first();
 const many = (env, sql, ...bindings) => env.DB.prepare(sql).bind(...bindings).all();
+const EARLY_ACCESS_BODY_LIMIT = 2048;
+const EARLY_ACCESS_RATE_LIMIT = 5;
+const EARLY_ACCESS_RATE_WINDOW_SECONDS = 60 * 60;
 
 async function session(request, env) {
   return verifySession(sessionToken(request), env.SESSION_SECRET);
@@ -28,15 +31,66 @@ async function parseObject(request) {
   return body;
 }
 
+async function earlyAccessBody(request) {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("application/json")) {
+    return { response: json({ error: "JSON body required" }, 415) };
+  }
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > EARLY_ACCESS_BODY_LIMIT) {
+    return { response: json({ error: "Request body too large" }, 413) };
+  }
+  const rawBody = await request.text();
+  if (new TextEncoder().encode(rawBody).byteLength > EARLY_ACCESS_BODY_LIMIT) {
+    return { response: json({ error: "Request body too large" }, 413) };
+  }
+  let body;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return { response: json({ error: "Invalid JSON body" }, 400) };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { response: json({ error: "Invalid JSON body" }, 400) };
+  }
+  return { body };
+}
+
+async function earlyAccessRateLimit(request, env) {
+  const ip = request.headers.get("cf-connecting-ip")?.trim();
+  if (!ip) return json({ error: "Client identity unavailable", code: "SIGNUP_UNAVAILABLE" }, 503);
+  const epochSeconds = Math.floor(Date.now() / 1000);
+  const windowStart = Math.floor(epochSeconds / EARLY_ACCESS_RATE_WINDOW_SECONDS) * EARLY_ACCESS_RATE_WINDOW_SECONDS;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${ip}:${windowStart}`));
+  const bucketKey = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  const expiresAt = windowStart + EARLY_ACCESS_RATE_WINDOW_SECONDS;
+  const bucket = await env.DB.prepare("INSERT INTO early_access_rate_limits(bucket_key,request_count,expires_at) VALUES(?,1,?) ON CONFLICT(bucket_key) DO UPDATE SET request_count=request_count+1 RETURNING request_count")
+    .bind(bucketKey, expiresAt).first();
+  if (!bucket || bucket.request_count > EARLY_ACCESS_RATE_LIMIT) {
+    return json({ error: "Too many requests" }, 429, { "retry-after": String(Math.max(1, expiresAt - epochSeconds)) });
+  }
+  if (bucket.request_count === 1) {
+    await env.DB.prepare("DELETE FROM early_access_rate_limits WHERE bucket_key IN (SELECT bucket_key FROM early_access_rate_limits WHERE expires_at<? LIMIT 20)").bind(epochSeconds).run();
+  }
+  return null;
+}
+
 async function handleEarlyAccess(request, env) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, { allow: "POST" });
   if (!env.DB) return json({ error: "Early access signup is not configured", code: "SIGNUP_UNAVAILABLE" }, 503);
-  const body = await parseObject(request);
-  if (body.company) return json({ ok: true }, 202);
+  const parsed = await earlyAccessBody(request);
+  if (parsed.response) return parsed.response;
+  const body = parsed.body;
+  if (typeof body.company !== "string" || typeof body.website !== "string") {
+    return json({ error: "Invalid form submission" }, 400);
+  }
+  if (body.company || body.website) return json({ ok: true }, 202);
+  const rateLimited = await earlyAccessRateLimit(request, env);
+  if (rateLimited) return rateLimited;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const plan = body.plan === "seller" ? "seller" : "undecided";
+  const plan = body.plan === "seller" || body.plan === "undecided" ? body.plan : "";
   const useCase = typeof body.useCase === "string" ? body.useCase.trim().slice(0, 500) : "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+  if (!plan || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return json({ error: "Valid email required" }, 400);
   }
   const id = crypto.randomUUID();
