@@ -28,6 +28,12 @@ async function parseObject(request) {
   return body;
 }
 
+function allowsDevelopmentLogin(request, env) {
+  if (env.AUTH_MODE !== "development") return false;
+  const hostname = new URL(request.url).hostname;
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
 async function handleAuth(request, env, path, url) {
   if (path === "/api/auth/session" && request.method === "GET") {
     const active = await session(request, env);
@@ -37,7 +43,7 @@ async function handleAuth(request, env, path, url) {
   }
 
   if (path === "/api/auth/dev-login" && request.method === "POST") {
-    if (env.AUTH_MODE !== "development") return json({ error: "Development login is disabled" }, 404);
+    if (!allowsDevelopmentLogin(request, env)) return json({ error: "Development login is disabled" }, 404);
     const body = await parseObject(request);
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return json({ error: "Valid email required" }, 400);

@@ -41,7 +41,7 @@ class MemoryD1 {
 }
 
 const makeEnv = (overrides = {}) => ({ DB: new MemoryD1(), SESSION_SECRET: "test-session-secret", WEBHOOK_SECRET: "test-webhook-secret", AUTH_MODE: "development", PAYMENT_PROVIDER: "unconfigured", ASSETS: { fetch: () => new Response("asset-ok") }, ...overrides });
-const call = (env, path, init = {}) => worker.fetch(new Request(`https://example.test${path}`, init), env);
+const call = (env, path, init = {}) => worker.fetch(new Request(`http://localhost${path}`, init), env);
 const body = (value) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(value) });
 
 async function login(env) {
@@ -55,8 +55,13 @@ test("protected account rejects anonymous access", async () => {
   assert.equal(response.status, 401);
 });
 
-test("production mode disables development login", async () => {
+test("disabled auth mode rejects development login on localhost", async () => {
   const response = await call(makeEnv({ AUTH_MODE: "disabled" }), "/api/auth/dev-login", body({ email: "attacker@example.test" }));
+  assert.equal(response.status, 404);
+});
+
+test("non-local hosts reject development login even when auth mode is development", async () => {
+  const response = await worker.fetch(new Request("https://example.test/api/auth/dev-login", body({ email: "attacker@example.test" })), makeEnv());
   assert.equal(response.status, 404);
 });
 

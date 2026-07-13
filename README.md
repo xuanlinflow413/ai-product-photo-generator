@@ -12,7 +12,7 @@ The local MVP only resizes onto a white canvas and converts to JPG. It does not 
 
 The Next.js site remains an `output: "export"` static build. Runtime account and billing routes are implemented by the Cloudflare Pages Worker in `public/_worker.js`, backed by a development D1 database using `migrations/0001_billing.sql`.
 
-- Development login is available only when `AUTH_MODE=development`; the committed Pages configuration sets `AUTH_MODE=disabled`, and production OAuth is intentionally not faked.
+- Development login is available only for a local host when an explicit local override sets `AUTH_MODE=development`; the committed Pages configuration sets `AUTH_MODE=disabled`, and the Worker rejects development login on non-local hostnames even if a deployment environment is misconfigured.
 - `/account/` is protected by an HttpOnly signed session and displays real D1-backed empty states, orders, exports, plan, and balance.
 - Checkout returns `503 CHECKOUT_UNAVAILABLE` unless `PAYMENT_PROVIDER=mock`. The mock contract creates a pending order but never charges money.
 - Credits are granted only by a valid signed `checkout.completed` webhook. Duplicate webhook IDs are idempotent.
@@ -26,7 +26,7 @@ npx wrangler d1 migrations apply ai-product-photo-dev --local
 npx wrangler pages dev out
 ```
 
-For local testing only, set Wrangler secrets with non-production development values for `SESSION_SECRET` and `WEBHOOK_SECRET`, then override `AUTH_MODE=development`. A real payment adapter, OAuth credentials, D1 database ID, and production OAuth remain external configuration gaps and were not created by this change.
+For local testing only, set Wrangler secrets with non-production development values for `SESSION_SECRET` and `WEBHOOK_SECRET`, then explicitly override `AUTH_MODE=development` in the local Pages dev environment (for example with `wrangler pages dev --var AUTH_MODE:development out`). Never put that override in the committed `wrangler.jsonc`; the Worker also rejects it on non-local hostnames. A real payment adapter, OAuth credentials, D1 database ID, and production OAuth remain external configuration gaps and were not created by this change.
 
 ### KindReply reference audit
 
