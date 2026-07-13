@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Zap } from "lucide-react";
-import { trackCTA } from "@/lib/analytics";
+import { conversionEvents, trackConversion } from "@/lib/conversion-analytics";
 
 const plans = [
   {
@@ -51,7 +51,7 @@ export function Pricing() {
                 <ul className="mb-6 space-y-3">
                   {plan.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm text-slate-600"><Check className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />{feature}</li>)}
                 </ul>
-                <a href={plan.href} onClick={() => trackCTA("pricing", plan.name === "Free" ? "use_free_tools" : "register_paid_interest", plan.name)} className={`block w-full rounded-xl py-3 text-center text-sm font-semibold transition ${plan.highlight ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>{plan.cta}</a>
+                <a href={plan.href} onClick={() => trackConversion({ name: conversionEvents.seoPrimaryCtaClick, properties: { page_path: "/", source_page: "/", cta_id: plan.name === "Free" ? "pricing_free_tools" : "pricing_paid_interest" } })} className={`block w-full rounded-xl py-3 text-center text-sm font-semibold transition ${plan.highlight ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>{plan.cta}</a>
               </div>
             );
           })}

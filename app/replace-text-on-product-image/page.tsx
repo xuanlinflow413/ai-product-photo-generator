@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TrackedLink } from "@/components/tracked-link";
+import { conversionEvents } from "@/lib/conversion-analytics";
 import {
   ArrowRight,
   CheckCircle2,
@@ -133,13 +135,14 @@ export default function ReplaceTextOnProductImagePage() {
             place replacement wording, use a focused local browser canvas.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Link
+            <TrackedLink
               href="/edit-text-in-product-image/"
+              conversion={{ name: conversionEvents.seoPrimaryCtaClick, properties: { page_path: "/replace-text-on-product-image/", source_page: "/replace-text-on-product-image/", cta_id: "guide_hero_editor" } }}
               className="inline-flex max-w-full items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 text-center font-semibold leading-6 text-white hover:bg-indigo-800"
             >
               <span className="min-w-0">Edit your product image text</span>
               <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
-            </Link>
+            </TrackedLink>
             <p className="flex items-center gap-2 text-sm text-slate-600">
               <ShieldCheck
                 className="h-5 w-5 shrink-0 text-emerald-700"
@@ -276,13 +279,14 @@ export default function ReplaceTextOnProductImagePage() {
               Cover old wording and place your replacement copy
             </h2>
           </div>
-          <Link
+          <TrackedLink
             href="/edit-text-in-product-image/"
+            conversion={{ name: conversionEvents.seoPrimaryCtaClick, properties: { page_path: "/replace-text-on-product-image/", source_page: "/replace-text-on-product-image/", cta_id: "guide_final_editor" } }}
             className="inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 text-center font-semibold leading-6 text-white hover:bg-indigo-800"
           >
             <span className="min-w-0">Open the local text editor</span>
             <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
-          </Link>
+          </TrackedLink>
         </div>
       </section>
 

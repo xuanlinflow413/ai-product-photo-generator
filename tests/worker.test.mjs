@@ -135,6 +135,65 @@ test("early access signup rejects oversized and non-JSON bodies", async () => {
   assert.equal(nonJson.status, 415);
 });
 
+test("analytics accepts an allowlisted conversion event without authentication", async () => {
+  const event = {
+    name: "text_editor_export",
+    properties: { page_path: "/edit-text-in-product-image/", format: "png", result: "success" },
+  };
+  const response = await call(makeEnv(), "/api/analytics/events", body(event));
+  assert.equal(response.status, 202);
+  assert.equal(response.headers.get("x-analytics-event"), event.name);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+});
+
+test("analytics accepts the application/json content type sent by sendBeacon", async () => {
+  const event = {
+    name: "marketplace_zip_export",
+    properties: { page_path: "/marketplace-image-fixer/", platform_selection: "amazon_etsy", file_count_bucket: "2_5", result: "success" },
+  };
+  const response = await call(makeEnv(), "/api/analytics/events", {
+    method: "POST",
+    headers: { "content-type": "application/json;charset=UTF-8" },
+    body: JSON.stringify(event),
+  });
+  assert.equal(response.status, 202);
+});
+
+test("analytics rejects unknown, extra, and sensitive event properties", async () => {
+  const env = makeEnv();
+  const unknown = await call(env, "/api/analytics/events", body({ name: "arbitrary_event", properties: {} }));
+  assert.equal(unknown.status, 400);
+  const filename = await call(env, "/api/analytics/events", body({
+    name: "text_editor_file_selected",
+    properties: { page_path: "/edit-text-in-product-image/", file_count_bucket: "1", result: "success", filename: "private-product.jpg" },
+  }));
+  assert.equal(filename.status, 400);
+  const email = await call(env, "/api/analytics/events", body({
+    name: "early_access_submit",
+    properties: { page_path: "/", result: "success", email: "seller@example.com" },
+  }));
+  assert.equal(email.status, 400);
+});
+
+test("analytics rejects invalid enum values, oversized bodies, and non-JSON requests", async () => {
+  const env = makeEnv();
+  const query = await call(env, "/api/analytics/events", body({
+    name: "seo_primary_cta_click",
+    properties: { page_path: "/replace-text-on-product-image/?email=private", source_page: "direct", cta_id: "guide_hero_editor" },
+  }));
+  assert.equal(query.status, 400);
+  const oversized = await call(env, "/api/analytics/events", body({ name: "x".repeat(1100), properties: {} }));
+  assert.equal(oversized.status, 413);
+  const nonJson = await call(env, "/api/analytics/events", { method: "POST", headers: { "content-type": "text/plain" }, body: "hello" });
+  assert.equal(nonJson.status, 415);
+});
+
+test("analytics endpoint allows only POST", async () => {
+  const response = await call(makeEnv(), "/api/analytics/events");
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "POST");
+});
+
 test("0002 migration applies after 0001 without losing existing billing data", async () => {
   const db = new DatabaseSync(":memory:");
   const migration1 = await readFile(new URL("../migrations/0001_billing.sql", import.meta.url), "utf8");

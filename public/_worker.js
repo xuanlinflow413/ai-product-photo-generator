@@ -15,6 +15,52 @@ const many = (env, sql, ...bindings) => env.DB.prepare(sql).bind(...bindings).al
 const EARLY_ACCESS_BODY_LIMIT = 2048;
 const EARLY_ACCESS_RATE_LIMIT = 5;
 const EARLY_ACCESS_RATE_WINDOW_SECONDS = 60 * 60;
+const ANALYTICS_BODY_LIMIT = 1024;
+
+const analyticsContracts = {
+  seo_primary_cta_click: {
+    required: ["page_path", "source_page", "cta_id"],
+    values: {
+      page_path: ["/", "/replace-text-on-product-image/"],
+      source_page: ["/", "/replace-text-on-product-image/", "direct"],
+      cta_id: ["guide_hero_editor", "guide_final_editor", "pricing_free_tools", "pricing_paid_interest"],
+    },
+  },
+  text_editor_file_selected: {
+    required: ["page_path", "file_count_bucket", "result"],
+    values: { page_path: ["/edit-text-in-product-image/"], file_count_bucket: ["1"], result: ["success"] },
+  },
+  text_editor_export: {
+    required: ["page_path", "format", "result"],
+    values: { page_path: ["/edit-text-in-product-image/"], format: ["png", "jpg"], result: ["success"] },
+  },
+  marketplace_files_selected: {
+    required: ["page_path", "file_count_bucket", "result"],
+    values: { page_path: ["/marketplace-image-fixer/"], file_count_bucket: ["1", "2_5", "6_10", "11_25"], result: ["success"] },
+  },
+  marketplace_pack_prepared: {
+    required: ["page_path", "platform_selection", "file_count_bucket", "result"],
+    values: {
+      page_path: ["/marketplace-image-fixer/"],
+      platform_selection: ["amazon", "etsy", "ebay", "amazon_etsy", "amazon_ebay", "etsy_ebay", "amazon_etsy_ebay"],
+      file_count_bucket: ["1", "2_5", "6_10", "11_25"],
+      result: ["success"],
+    },
+  },
+  marketplace_zip_export: {
+    required: ["page_path", "platform_selection", "file_count_bucket", "result"],
+    values: {
+      page_path: ["/marketplace-image-fixer/"],
+      platform_selection: ["amazon", "etsy", "ebay", "amazon_etsy", "amazon_ebay", "etsy_ebay", "amazon_etsy_ebay"],
+      file_count_bucket: ["1", "2_5", "6_10", "11_25"],
+      result: ["success"],
+    },
+  },
+  early_access_submit: {
+    required: ["page_path", "result"],
+    values: { page_path: ["/"], result: ["success"] },
+  },
+};
 
 async function session(request, env) {
   return verifySession(sessionToken(request), env.SESSION_SECRET);
@@ -97,6 +143,34 @@ async function handleEarlyAccess(request, env) {
   await env.DB.prepare("INSERT INTO early_access_leads(id,email,plan_id,use_case,source,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET plan_id=excluded.plan_id,use_case=excluded.use_case,source=excluded.source")
     .bind(id, email, plan, useCase, "homepage_pricing", now()).run();
   return json({ ok: true }, 201);
+}
+
+async function handleAnalyticsEvent(request) {
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, { allow: "POST" });
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("application/json")) return json({ error: "JSON body required" }, 415);
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > ANALYTICS_BODY_LIMIT) return json({ error: "Request body too large" }, 413);
+  const rawBody = await request.text();
+  if (new TextEncoder().encode(rawBody).byteLength > ANALYTICS_BODY_LIMIT) return json({ error: "Request body too large" }, 413);
+
+  let event;
+  try {
+    event = JSON.parse(rawBody);
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
+  }
+  if (!event || typeof event !== "object" || Array.isArray(event) || typeof event.name !== "string") return json({ error: "Invalid event" }, 400);
+  const contract = analyticsContracts[event.name];
+  const properties = event.properties;
+  if (!contract || !properties || typeof properties !== "object" || Array.isArray(properties)) return json({ error: "Invalid event" }, 400);
+  const keys = Object.keys(properties).sort();
+  const required = [...contract.required].sort();
+  if (keys.length !== required.length || keys.some((key, index) => key !== required[index])) return json({ error: "Invalid event properties" }, 400);
+  if (required.some((key) => typeof properties[key] !== "string" || !contract.values[key].includes(properties[key]))) return json({ error: "Invalid event properties" }, 400);
+
+  console.log(JSON.stringify({ type: "conversion_event", name: event.name, properties }));
+  return new Response(null, { status: 202, headers: { "cache-control": "no-store", "x-analytics-event": event.name } });
 }
 
 function allowsDevelopmentLogin(request, env) {
@@ -191,6 +265,7 @@ async function handleApi(request, env) {
   if (path === "/api/health") return json({ ok: true, paymentProvider: env.PAYMENT_PROVIDER || "unconfigured" });
   if (path === "/api/plans") return json({ plans: PLANS, checkoutAvailable: env.PAYMENT_PROVIDER === "mock" });
   if (path === "/api/early-access") return handleEarlyAccess(request, env);
+  if (path === "/api/analytics/events") return handleAnalyticsEvent(request);
 
   const authResponse = await handleAuth(request, env, path, url);
   if (authResponse) return authResponse;

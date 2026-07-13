@@ -4,6 +4,7 @@ import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { conversionEvents, fileCountBucket, platformSelection, trackConversion } from "@/lib/conversion-analytics";
 import {
   Archive,
   Check,
@@ -93,7 +94,9 @@ export default function MarketplaceImageFixerPage() {
 
   function addFiles(incoming: FileList | File[]) {
     const valid = Array.from(incoming).filter((file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024);
-    setFiles((current) => [...current, ...valid].slice(0, 25));
+    const next = [...files, ...valid].slice(0, 25);
+    setFiles(next);
+    if (valid.length > 0) trackConversion({ name: conversionEvents.marketplaceFilesSelected, properties: { page_path: "/marketplace-image-fixer/", file_count_bucket: fileCountBucket(next.length), result: "success" } });
     setProcessed({ Amazon: [], Etsy: [], eBay: [] });
     setStatus("idle");
     setError(valid.length !== incoming.length ? "Only image files up to 10MB were added." : null);
@@ -119,6 +122,7 @@ export default function MarketplaceImageFixerPage() {
       for (const platform of platforms) next[platform] = await Promise.all(files.map((file, index) => processImage(file, platform, index)));
       setProcessed(next);
       setStatus("ready");
+      trackConversion({ name: conversionEvents.marketplacePackPrepared, properties: { page_path: "/marketplace-image-fixer/", platform_selection: platformSelection(platforms), file_count_bucket: fileCountBucket(files.length), result: "success" } });
     } catch (processingError) {
       setError(processingError instanceof Error ? processingError.message : "Processing failed. Try another image.");
       setStatus("idle");
@@ -146,6 +150,7 @@ export default function MarketplaceImageFixerPage() {
     anchor.download = "marketplace-image-pack.zip";
     anchor.click();
     URL.revokeObjectURL(url);
+    trackConversion({ name: conversionEvents.marketplaceZipExport, properties: { page_path: "/marketplace-image-fixer/", platform_selection: platformSelection(platforms), file_count_bucket: fileCountBucket(files.length), result: "success" } });
   }
 
   return (

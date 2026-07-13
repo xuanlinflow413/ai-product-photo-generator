@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight, Bell, Mail } from "lucide-react";
-import { trackFormSubmit } from "@/lib/analytics";
+import { conversionEvents, trackConversion } from "@/lib/conversion-analytics";
 
 export function Waitlist() {
   const [email, setEmail] = useState("");
@@ -27,10 +27,10 @@ export function Waitlist() {
           ? "Signup is not available yet. Please try again later."
           : "We could not save your request. Please check your email and retry.");
       }
-      trackFormSubmit("seller_early_access", true);
+      trackConversion({ name: conversionEvents.earlyAccessSubmit, properties: { page_path: "/", result: "success" } });
       setStatus("submitted");
     } catch (error) {
-      trackFormSubmit("seller_early_access", false);
+
       setMessage(error instanceof Error ? error.message : "We could not save your request. Please retry.");
       setStatus("error");
     }
