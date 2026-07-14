@@ -22,6 +22,13 @@ export type ConversionEvent =
   | { name: typeof conversionEvents.marketplaceZipExport; properties: { page_path: "/marketplace-image-fixer/"; platform_selection: PlatformSelection; file_count_bucket: FileCountBucket; result: Result } }
   | { name: typeof conversionEvents.earlyAccessSubmit; properties: { page_path: "/"; result: Result } };
 
+type PlausibleEvent = {
+  name: "seo_primary_cta_click" | "text_editor_file_selected" | "text_editor_export" | "marketplace_files_selected" | "marketplace_pack_prepared" | "marketplace_zip_export" | "pricing_cta_click" | "early_access_submit";
+  props: Record<string, string>;
+};
+
+type Plausible = (name: PlausibleEvent["name"], options: { props: PlausibleEvent["props"]; url: string }) => void;
+
 export function fileCountBucket(count: number): FileCountBucket {
   if (count <= 1) return "1";
   if (count <= 5) return "2_5";
@@ -35,14 +42,64 @@ export function platformSelection(platforms: string[]): PlatformSelection {
   return normalized.join("_") as PlatformSelection;
 }
 
+/** Project a conversion onto Plausible's separate, privacy-safe contract. */
+export function plausibleEventFor(event: ConversionEvent): PlausibleEvent {
+  switch (event.name) {
+    case conversionEvents.seoPrimaryCtaClick: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.seoPrimaryCtaClick }>;
+      return {
+        name: properties.cta_id === "pricing_free_tools" || properties.cta_id === "pricing_paid_interest" ? "pricing_cta_click" : event.name,
+        props: { page_path: properties.page_path, source_page: properties.source_page, cta_id: properties.cta_id },
+      };
+    }
+    case conversionEvents.textEditorFileSelected: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.textEditorFileSelected }>;
+      return { name: event.name, props: { page_path: properties.page_path, file_count_bucket: properties.file_count_bucket, result: properties.result } };
+    }
+    case conversionEvents.textEditorExport: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.textEditorExport }>;
+      return { name: event.name, props: { page_path: properties.page_path, format: properties.format, result: properties.result } };
+    }
+    case conversionEvents.marketplaceFilesSelected: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.marketplaceFilesSelected }>;
+      return { name: event.name, props: { page_path: properties.page_path, file_count_bucket: properties.file_count_bucket, result: properties.result } };
+    }
+    case conversionEvents.marketplacePackPrepared:
+    case conversionEvents.marketplaceZipExport: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.marketplacePackPrepared | typeof conversionEvents.marketplaceZipExport }>;
+      return { name: event.name, props: { page_path: properties.page_path, platform_selection: properties.platform_selection, file_count_bucket: properties.file_count_bucket, result: properties.result } };
+    }
+    case conversionEvents.earlyAccessSubmit: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.earlyAccessSubmit }>;
+      return { name: event.name, props: { page_path: properties.page_path, result: properties.result } };
+    }
+  }
+}
+
+function trackFirstParty(event: ConversionEvent): void {
+  const body = JSON.stringify(event);
+  if (typeof navigator.sendBeacon === "function" && navigator.sendBeacon("/api/analytics/events", new Blob([body], { type: "application/json" }))) return;
+  void fetch("/api/analytics/events", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true, credentials: "omit" }).catch(() => undefined);
+}
+
+function trackPlausible(event: ConversionEvent): void {
+  const plausible = (window as Window & { plausible?: Plausible }).plausible;
+  if (typeof plausible !== "function") return;
+  const projected = plausibleEventFor(event);
+  plausible(projected.name, { props: projected.props, url: `${window.location.origin}${projected.props.page_path}` });
+}
+
 /** Analytics is deliberately fire-and-forget and can never block a product workflow. */
 export function trackConversion(event: ConversionEvent): void {
   if (typeof window === "undefined") return;
   try {
-    const body = JSON.stringify(event);
-    if (typeof navigator.sendBeacon === "function" && navigator.sendBeacon("/api/analytics/events", new Blob([body], { type: "application/json" }))) return;
-    void fetch("/api/analytics/events", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true, credentials: "omit" }).catch(() => undefined);
+    trackFirstParty(event);
   } catch {
     // Browser privacy controls and unavailable networking are non-fatal.
+  }
+  try {
+    trackPlausible(event);
+  } catch {
+    // Analytics failures must not interrupt editing, export, or navigation.
   }
 }

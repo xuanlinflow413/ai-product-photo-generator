@@ -22,3 +22,33 @@ test("tracking is a no-op outside the browser", () => {
     properties: { page_path: "/edit-text-in-product-image/", format: "png", result: "success" },
   }));
 });
+
+test("Plausible maps every conversion and splits pricing CTAs into their funnel event", () => {
+  const cases = [
+    [{ name: analytics.conversionEvents.seoPrimaryCtaClick, properties: { page_path: "/replace-text-on-product-image/", source_page: "direct", cta_id: "guide_hero_editor" } }, "seo_primary_cta_click"],
+    [{ name: analytics.conversionEvents.seoPrimaryCtaClick, properties: { page_path: "/", source_page: "/", cta_id: "pricing_free_tools" } }, "pricing_cta_click"],
+    [{ name: analytics.conversionEvents.textEditorFileSelected, properties: { page_path: "/edit-text-in-product-image/", file_count_bucket: "1", result: "success" } }, "text_editor_file_selected"],
+    [{ name: analytics.conversionEvents.textEditorExport, properties: { page_path: "/edit-text-in-product-image/", format: "png", result: "success" } }, "text_editor_export"],
+    [{ name: analytics.conversionEvents.marketplaceFilesSelected, properties: { page_path: "/marketplace-image-fixer/", file_count_bucket: "2_5", result: "success" } }, "marketplace_files_selected"],
+    [{ name: analytics.conversionEvents.marketplacePackPrepared, properties: { page_path: "/marketplace-image-fixer/", platform_selection: "amazon_etsy", file_count_bucket: "2_5", result: "success" } }, "marketplace_pack_prepared"],
+    [{ name: analytics.conversionEvents.marketplaceZipExport, properties: { page_path: "/marketplace-image-fixer/", platform_selection: "amazon_etsy", file_count_bucket: "2_5", result: "success" } }, "marketplace_zip_export"],
+    [{ name: analytics.conversionEvents.earlyAccessSubmit, properties: { page_path: "/", result: "success" } }, "early_access_submit"],
+  ];
+  assert.deepEqual(cases.map(([event]) => analytics.plausibleEventFor(event).name), cases.map(([, name]) => name));
+});
+
+test("Plausible projection drops sensitive and unknown runtime fields", () => {
+  const projected = analytics.plausibleEventFor({
+    name: analytics.conversionEvents.textEditorFileSelected,
+    properties: {
+      page_path: "/edit-text-in-product-image/",
+      file_count_bucket: "1",
+      result: "success",
+      filename: "private-product.jpg",
+      email: "seller@example.com",
+      query: "?token=secret",
+      text: "private label copy",
+    },
+  });
+  assert.deepEqual(projected.props, { page_path: "/edit-text-in-product-image/", file_count_bucket: "1", result: "success" });
+});

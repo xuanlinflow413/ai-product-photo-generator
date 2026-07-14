@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { Loader2, Download, RefreshCw } from "lucide-react";
-import { trackCTA } from "@/lib/analytics";
 
 interface GeneratorProps {
   hasImage: boolean;
@@ -38,7 +37,6 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
   const [results, setResults] = useState<typeof mockResults | null>(null);
 
   const handleGenerate = useCallback(() => {
-    trackCTA("demo", "generate", selectedScene || "unknown");
     setLoading(true);
     setProgress(0);
     setResults(null);
@@ -59,7 +57,7 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
       setLoading(false);
       setResults(mockResults);
     }, 3000);
-  }, [selectedScene]);
+  }, []);
 
   const canGenerate = hasImage && selectedScene && !loading;
 
