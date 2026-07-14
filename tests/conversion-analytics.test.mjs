@@ -8,6 +8,7 @@ test("file counts are reduced to privacy-safe buckets", () => {
   assert.equal(analytics.fileCountBucket(2), "2_5");
   assert.equal(analytics.fileCountBucket(6), "6_10");
   assert.equal(analytics.fileCountBucket(25), "11_25");
+  assert.equal(analytics.fileCountBucket(26), "11_25");
 });
 
 test("marketplace selections are normalized to a stable allowlisted value", () => {
@@ -51,4 +52,25 @@ test("Plausible projection drops sensitive and unknown runtime fields", () => {
     },
   });
   assert.deepEqual(projected.props, { page_path: "/edit-text-in-product-image/", file_count_bucket: "1", result: "success" });
+});
+
+test("marketplace projections expose only fixed enum properties", () => {
+  const projected = analytics.plausibleEventFor({
+    name: analytics.conversionEvents.marketplaceZipExport,
+    properties: {
+      page_path: "/marketplace-image-fixer/",
+      platform_selection: "amazon_etsy_ebay",
+      file_count_bucket: "11_25",
+      result: "success",
+      filename: "private-catalog.jpg",
+      blob: "blob:https://editimages.app/private",
+      error: "private free text",
+    },
+  });
+  assert.deepEqual(projected.props, {
+    page_path: "/marketplace-image-fixer/",
+    platform_selection: "amazon_etsy_ebay",
+    file_count_bucket: "11_25",
+    result: "success",
+  });
 });

@@ -173,6 +173,13 @@ test("analytics rejects unknown, extra, and sensitive event properties", async (
     properties: { page_path: "/", result: "success", email: "seller@example.com" },
   }));
   assert.equal(email.status, 400);
+  for (const sensitive of ["filename", "blob", "query", "text", "error", "email"]) {
+    const response = await call(env, "/api/analytics/events", body({
+      name: "marketplace_pack_prepared",
+      properties: { page_path: "/marketplace-image-fixer/", platform_selection: "amazon_etsy", file_count_bucket: "2_5", result: "success", [sensitive]: "private" },
+    }));
+    assert.equal(response.status, 400, sensitive);
+  }
 });
 
 test("analytics rejects invalid enum values, oversized bodies, and non-JSON requests", async () => {
