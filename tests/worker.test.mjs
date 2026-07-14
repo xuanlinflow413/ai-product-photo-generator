@@ -61,6 +61,7 @@ const makeEnv = (overrides = {}) => ({ DB: new MemoryD1(), SESSION_SECRET: "test
 const call = (env, path, init = {}) => worker.fetch(new Request(`http://localhost${path}`, init), env);
 const body = (value, headers = {}) => ({ method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.10", ...headers }, body: JSON.stringify(value) });
 const lead = (overrides = {}) => ({ email: "seller@example.com", plan: "seller", useCase: "Weekly marketplace batches", company: "", website: "", ...overrides });
+const billingBinding = (handler) => ({ fetch: handler });
 
 async function login(env) {
   const response = await call(env, "/api/auth/dev-login", body({ email: "developer@example.test" }));
@@ -214,6 +215,63 @@ test("0002 migration applies after 0001 without losing existing billing data", a
     ["early_access_leads", "early_access_rate_limits"],
   );
   db.close();
+});
+
+test("production account routes fail closed without the billing service binding", async () => {
+  const response = await call(makeEnv({ AUTH_MODE: "disabled" }), "/api/auth/session");
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { error: "Production account service is unavailable", code: "AUTH_UNAVAILABLE" });
+});
+
+test("production auth proxy forwards the branded host and preserves cookies", async () => {
+  let upstreamRequest;
+  const env = makeEnv({
+    AUTH_MODE: "disabled",
+    BILLING: billingBinding(async (request) => {
+      upstreamRequest = request;
+      return new Response(JSON.stringify({ authenticated: false }), {
+        headers: { "content-type": "application/json", "set-cookie": "session=proxy-session; HttpOnly; Secure; Path=/" },
+      });
+    }),
+  });
+  const response = await call(env, "/api/auth/session", { headers: { cookie: "session=browser-session" } });
+
+  assert.equal(response.status, 200);
+  assert.equal(new URL(upstreamRequest.url).origin, "https://auth.editimages.app");
+  assert.equal(upstreamRequest.headers.get("x-forwarded-host"), "auth.editimages.app");
+  assert.equal(upstreamRequest.headers.get("x-forwarded-proto"), "https");
+  assert.equal(upstreamRequest.headers.get("cookie"), "session=browser-session");
+  assert.match(response.headers.get("set-cookie"), /session=proxy-session/);
+});
+
+test("production auth proxy forwards Google OAuth initiation", async () => {
+  let upstreamRequest;
+  const env = makeEnv({
+    AUTH_MODE: "disabled",
+    BILLING: billingBinding(async (request) => {
+      upstreamRequest = request;
+      return new Response(null, { status: 302, headers: { location: "https://accounts.google.com/o/oauth2/v2/auth" } });
+    }),
+  });
+  const response = await call(env, "/api/auth/google?returnUrl=https%3A%2F%2Feditimages.app%2Flogin%2F");
+
+  assert.equal(response.status, 302);
+  assert.equal(new URL(upstreamRequest.url).pathname, "/api/auth/google");
+  assert.equal(new URL(upstreamRequest.url).searchParams.get("returnUrl"), "https://editimages.app/login/");
+});
+
+test("production billing proxy preserves manual redirects", async () => {
+  const env = makeEnv({
+    AUTH_MODE: "disabled",
+    BILLING: billingBinding(async () => new Response(null, {
+      status: 302,
+      headers: { location: "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https%3A%2F%2Fauth.editimages.app%2Fapi%2Fauth%2Fgoogle%2Fcallback" },
+    })),
+  });
+  const response = await call(env, "/api/auth/session");
+
+  assert.equal(response.status, 302);
+  assert.match(response.headers.get("location"), /redirect_uri=https%3A%2F%2Fauth\.editimages\.app/);
 });
 
 test("disabled auth mode rejects development login on localhost", async () => {

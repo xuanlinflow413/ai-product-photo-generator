@@ -1,3 +1,45 @@
 "use client";
-import {FormEvent,useEffect,useState} from "react";import Link from "next/link";import {api} from "@/lib/api";
-export default function Login(){const[email,setEmail]=useState("developer@example.test"),[message,setMessage]=useState("Checking session…");useEffect(()=>{api<{authenticated:boolean}>("/api/auth/session").then(x=>setMessage(x.authenticated?"You are already signed in.":"Development login requires AUTH_MODE=development.")).catch(e=>setMessage(e.message))},[]);async function submit(e:FormEvent){e.preventDefault();try{await api("/api/auth/dev-login",{method:"POST",body:JSON.stringify({email})});location.href="/account/"}catch(err){setMessage(err instanceof Error?err.message:"Login failed")}}return <main className="min-h-screen bg-slate-50 px-4 py-20"><div className="mx-auto max-w-md rounded-xl border bg-white p-8 shadow-sm"><Link href="/" className="text-sm text-indigo-600">← Home</Link><h1 className="mt-5 text-3xl font-bold">Sign in</h1><p className="mt-2 text-sm text-slate-600">Explicit development-only email adapter. Production OAuth is not configured.</p><form onSubmit={submit} className="mt-6 space-y-4"><input aria-label="Email" type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full rounded-lg border p-3"/><button className="w-full rounded-lg bg-indigo-600 p-3 font-semibold text-white">Continue in development</button></form><p className="mt-4 text-sm text-slate-500">{message}</p></div></main>}
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+
+const AUTH_URL = "https://auth.editimages.app/api/auth/google";
+
+export default function Login() {
+  const [message, setMessage] = useState("Checking your session...");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("auth_token");
+    if (token) {
+      api("/api/auth/exchange", { method: "POST", body: JSON.stringify({ token }) })
+        .then(() => {
+          history.replaceState(null, "", "/login/");
+          location.href = "/account/";
+        })
+        .catch((error) => setMessage(error instanceof Error ? error.message : "Sign-in failed"));
+      return;
+    }
+    api<{ authenticated: boolean }>("/api/auth/session")
+      .then((session) => {
+        if (session.authenticated) location.href = "/account/";
+        else setMessage("Sign in with Google to manage your EditImages account.");
+      })
+      .catch((error) => setMessage(error instanceof Error ? error.message : "Account service unavailable"));
+  }, []);
+
+  const signInUrl = `${AUTH_URL}?${new URLSearchParams({ returnUrl: "https://editimages.app/login/" })}`;
+
+  return (
+    <main className="min-h-screen bg-slate-50 px-4 py-20">
+      <div className="mx-auto max-w-md border bg-white p-8 shadow-sm">
+        <Link href="/" className="text-sm text-indigo-600">Home</Link>
+        <h1 className="mt-5 text-3xl font-bold">Sign in to EditImages</h1>
+        <p className="mt-2 text-sm text-slate-600">Use your Google account. Authentication is handled on the EditImages branded domain.</p>
+        <a href={signInUrl} className="mt-6 block w-full bg-indigo-600 p-3 text-center font-semibold text-white">Continue with Google</a>
+        <p className="mt-4 text-sm text-slate-500" role="status">{message}</p>
+      </div>
+    </main>
+  );
+}

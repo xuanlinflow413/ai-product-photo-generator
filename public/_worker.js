@@ -16,6 +16,16 @@ const EARLY_ACCESS_BODY_LIMIT = 2048;
 const EARLY_ACCESS_RATE_LIMIT = 5;
 const EARLY_ACCESS_RATE_WINDOW_SECONDS = 60 * 60;
 const ANALYTICS_BODY_LIMIT = 1024;
+const BILLING_ORIGIN = "https://auth.editimages.app";
+const BILLING_ROUTES = new Map([
+  ["/api/auth/google", "/api/auth/google"],
+  ["/api/auth/session", "/api/auth/session"],
+  ["/api/auth/exchange", "/api/auth/exchange"],
+  ["/api/auth/logout", "/api/auth/logout"],
+  ["/api/plans", "/api/billing/plans"],
+  ["/api/checkout", "/api/billing/checkout"],
+  ["/api/billing/portal", "/api/billing/portal"],
+]);
 
 const analyticsContracts = {
   seo_primary_cta_click: {
@@ -179,6 +189,30 @@ function allowsDevelopmentLogin(request, env) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
+async function proxyBillingRequest(request, env, path) {
+  if (env.AUTH_MODE === "development") return null;
+  const upstreamPath = BILLING_ROUTES.get(path);
+  if (!upstreamPath) return null;
+  if (!env.BILLING) {
+    return json({ error: "Production account service is unavailable", code: "AUTH_UNAVAILABLE" }, 503);
+  }
+
+  const sourceUrl = new URL(request.url);
+  const upstreamUrl = new URL(upstreamPath, BILLING_ORIGIN);
+  upstreamUrl.search = sourceUrl.search;
+  const headers = new Headers(request.headers);
+  headers.set("x-forwarded-host", "auth.editimages.app");
+  headers.set("x-forwarded-proto", "https");
+  headers.delete("host");
+
+  return env.BILLING.fetch(new Request(upstreamUrl, {
+    method: request.method,
+    headers,
+    body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
+    redirect: "manual",
+  }));
+}
+
 async function handleAuth(request, env, path, url) {
   if (path === "/api/auth/session" && request.method === "GET") {
     const active = await session(request, env);
@@ -263,9 +297,11 @@ async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/$/, "") || "/";
   if (path === "/api/health") return json({ ok: true, paymentProvider: env.PAYMENT_PROVIDER || "unconfigured" });
-  if (path === "/api/plans") return json({ plans: PLANS, checkoutAvailable: env.PAYMENT_PROVIDER === "mock" });
   if (path === "/api/early-access") return handleEarlyAccess(request, env);
   if (path === "/api/analytics/events") return handleAnalyticsEvent(request);
+
+  const billingResponse = await proxyBillingRequest(request, env, path);
+  if (billingResponse) return billingResponse;
 
   const authResponse = await handleAuth(request, env, path, url);
   if (authResponse) return authResponse;
