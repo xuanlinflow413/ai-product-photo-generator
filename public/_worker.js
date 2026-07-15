@@ -25,6 +25,7 @@ const BILLING_ROUTES = new Map([
   ["/api/plans", "/api/billing/plans"],
   ["/api/checkout", "/api/billing/checkout"],
   ["/api/billing/portal", "/api/billing/portal"],
+  ["/api/images/edit", "/api/images/edit"],
 ]);
 
 const analyticsContracts = {
@@ -204,11 +205,21 @@ async function proxyBillingRequest(request, env, path) {
   headers.set("x-forwarded-host", "auth.editimages.app");
   headers.set("x-forwarded-proto", "https");
   headers.delete("host");
+  if (path === "/api/images/edit") {
+    const declaredLength = Number(headers.get("content-length"));
+    if (Number.isFinite(declaredLength) && declaredLength > 9 * 1024 * 1024) {
+      return json({ error: "Request body too large" }, 413);
+    }
+  }
+  const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer();
+  if (path === "/api/images/edit" && body && body.byteLength > 9 * 1024 * 1024) {
+    return json({ error: "Request body too large" }, 413);
+  }
 
   return env.BILLING.fetch(new Request(upstreamUrl, {
     method: request.method,
     headers,
-    body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
+    body,
     redirect: "manual",
   }));
 }

@@ -274,6 +274,23 @@ test("production billing proxy preserves manual redirects", async () => {
   assert.match(response.headers.get("location"), /redirect_uri=https%3A%2F%2Fauth\.editimages\.app/);
 });
 
+test("AI image edits proxy only through the branded billing service", async () => {
+  let upstreamRequest;
+  const env = makeEnv({ AUTH_MODE: "disabled", BILLING: billingBinding(async (request) => {
+    upstreamRequest = request;
+    return new Response("image", { headers: { "content-type": "image/jpeg" } });
+  }) });
+  const form = new FormData();
+  form.append("image", new Blob(["image"], { type: "image/jpeg" }), "product.jpg");
+  form.append("instruction", "Replace label text");
+  form.append("idempotencyKey", "edit-key-1234567890");
+  const response = await call(env, "/api/images/edit", { method: "POST", body: form, headers: { cookie: "session=browser-session" } });
+  assert.equal(response.status, 200);
+  assert.equal(new URL(upstreamRequest.url).origin, "https://auth.editimages.app");
+  assert.equal(new URL(upstreamRequest.url).pathname, "/api/images/edit");
+  assert.equal(upstreamRequest.headers.get("x-forwarded-host"), "auth.editimages.app");
+});
+
 test("disabled auth mode rejects development login on localhost", async () => {
   const response = await call(makeEnv({ AUTH_MODE: "disabled" }), "/api/auth/dev-login", body({ email: "attacker@example.test" }));
   assert.equal(response.status, 404);
