@@ -10,11 +10,20 @@ const homeSource = await readFile(new URL("../app/page.tsx", import.meta.url), "
 test("Account renders the production Seller plan and exact checkout contract", () => {
   assert.match(accountSource, /plans\.find\(\(plan\) => plan\.id === SELLER_PLAN\.id\)/);
   assert.match(accountSource, /plan_id: planId/);
+  assert.doesNotMatch(accountSource, /success_url:|cancel_url:/);
   assert.match(accountSource, /api<\{ sessionId: string; url: string \}>\("\/api\/checkout"/);
   assert.match(accountSource, /safeBillingUrl\(result\.url\)/);
   assert.match(accountSource, /new Set\(\["checkout\.stripe\.com", "billing\.stripe\.com"\]\)/);
   assert.doesNotMatch(accountSource, /endsWith\("stripe\.com"\)/);
   assert.match(accountSource, /Subscribe for \$\{formatSellerPrice\(sellerPlan\.price_cents\)\}\/month/);
+});
+
+test("Account consumes the production plans contract and reads checkout status after mount", () => {
+  assert.match(accountSource, /billing_interval: string \| null; credits_allocated: number/);
+  assert.match(accountSource, /sellerPlan\.credits_allocated/);
+  assert.doesNotMatch(accountSource, /credits_per_period|sellerPlan\.interval/);
+  assert.match(accountSource, /setCheckoutStatus\(value === "success" \|\| value === "canceled"/);
+  assert.doesNotMatch(accountSource, /typeof window === "undefined"/);
 });
 
 test("Account covers signed-out, loading, checkout failure, active subscription, and history states", () => {
@@ -24,6 +33,11 @@ test("Account covers signed-out, loading, checkout failure, active subscription,
   assert.match(accountSource, /Manage subscription/);
   assert.match(accountSource, /Purchase history/);
   assert.match(accountSource, /Confirming your subscription/);
+  assert.match(accountSource, /"active", "trialing", "past_due", "unpaid", "incomplete"/);
+  assert.match(accountSource, /previous Seller subscription has ended/);
+  assert.doesNotMatch(accountSource, /"past_due", "canceled"/);
+  assert.match(accountSource, /status === "past_due" \|\| subscription\.status === "unpaid"/);
+  assert.match(accountSource, /status === "incomplete" \? "Setup incomplete"/);
 });
 
 test("Account has stable narrow viewport layout and full-width mobile actions", () => {
