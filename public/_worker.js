@@ -34,7 +34,7 @@ const analyticsContracts = {
     values: {
       page_path: ["/", "/replace-text-on-product-image/"],
       source_page: ["/", "/replace-text-on-product-image/", "direct"],
-      cta_id: ["guide_hero_editor", "guide_final_editor", "pricing_free_tools", "pricing_paid_interest"],
+      cta_id: ["guide_hero_editor", "guide_final_editor", "pricing_free_tools", "pricing_subscribe"],
     },
   },
   text_editor_file_selected: {

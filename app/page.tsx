@@ -4,7 +4,6 @@ import { HowItWorks } from "@/components/sections/how-it-works";
 import { Demo } from "@/components/sections/demo";
 import { Pricing } from "@/components/sections/pricing";
 import { FAQ } from "@/components/sections/faq";
-import { Waitlist } from "@/components/sections/waitlist";
 import { Footer } from "@/components/sections/footer";
 import { ToolWorkspace } from "@/components/sections/tool-workspace";
 
@@ -39,7 +38,6 @@ export default function Home() {
         <Demo />
         <Pricing />
         <FAQ />
-        <Waitlist />
         <Footer />
       </main>
     </>

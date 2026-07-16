@@ -274,6 +274,30 @@ test("production billing proxy preserves manual redirects", async () => {
   assert.match(response.headers.get("location"), /redirect_uri=https%3A%2F%2Fauth\.editimages\.app/);
 });
 
+test("production checkout proxy preserves the Seller request contract and Stripe response", async () => {
+  let upstreamRequest;
+  const env = makeEnv({
+    AUTH_MODE: "disabled",
+    BILLING: billingBinding(async (request) => {
+      upstreamRequest = request;
+      return new Response(JSON.stringify({ sessionId: "cs_test_redacted", url: "https://checkout.stripe.com/c/pay/redacted" }), {
+        headers: { "content-type": "application/json" },
+      });
+    }),
+  });
+  const response = await call(env, "/api/checkout", {
+    method: "POST",
+    headers: { "content-type": "application/json", cookie: "session=browser-session" },
+    body: JSON.stringify({ plan_id: "editimages-seller-monthly" }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(new URL(upstreamRequest.url).pathname, "/api/billing/checkout");
+  assert.equal(upstreamRequest.headers.get("cookie"), "session=browser-session");
+  assert.deepEqual(await upstreamRequest.json(), { plan_id: "editimages-seller-monthly" });
+  assert.match((await response.json()).url, /^https:\/\/checkout\.stripe\.com\//);
+});
+
 test("AI image edits proxy only through the branded billing service", async () => {
   let upstreamRequest;
   const env = makeEnv({ AUTH_MODE: "disabled", BILLING: billingBinding(async (request) => {
