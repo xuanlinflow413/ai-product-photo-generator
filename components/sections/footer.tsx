@@ -10,7 +10,7 @@ export function Footer() {
             <span className="font-semibold">EditImages</span>
           </div>
 
-          <nav className="flex gap-6 text-sm text-slate-500">
+          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500 sm:justify-end">
             <a href="#demo" className="hover:text-indigo-600">
               Demo
             </a>

@@ -40,6 +40,12 @@ export function Navbar() {
             Image Packs
           </Link>
           <Link href="/edit-text-in-product-image/" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Edit Text</Link>
+          <Link
+            href="/account/"
+            className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+          >
+            Sign in
+          </Link>
           <a
             href="#demo"
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -84,6 +90,13 @@ export function Navbar() {
               Image Packs
             </Link>
             <Link href="/edit-text-in-product-image/" className="text-sm font-medium text-slate-600 hover:text-indigo-600" onClick={() => setMobileOpen(false)}>Edit Text</Link>
+            <Link
+              href="/account/"
+              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+              onClick={() => setMobileOpen(false)}
+            >
+              Sign in
+            </Link>
             <a
               href="#demo"
               className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-indigo-700"
