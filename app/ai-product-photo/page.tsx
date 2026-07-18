@@ -5,8 +5,9 @@ import { ArrowRight, Camera, CheckCircle, Sparkles } from "lucide-react";
 export const metadata: Metadata = {
   title: "AI Product Photo Guide for E-Commerce Sellers",
   description:
-    "Learn how to use AI product photos for Shopify, Amazon, Etsy, ads, and lifestyle product images without creating a new brand site.",
+    "A guide to evaluating AI product-photo workflows for marketplace sellers. EditImages currently focuses on local image preparation and text replacement.",
   alternates: { canonical: "/ai-product-photo/" },
+  robots: { index: false, follow: false },
 };
 
 const sections = [
@@ -21,22 +22,22 @@ export default function Page() {
     <main className="min-h-screen bg-white text-gray-950">
       <section className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-950">
-          ← Back to AI Product Photo Generator
+          ← Back to EditImages
         </Link>
         <div className="mt-10 max-w-3xl">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-600">
             <Camera className="h-4 w-4" />
-            AI product photo long-tail guide
+            AI product photo planning guide
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
             AI product photo workflows for e-commerce sellers
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            AI Product Photo belongs on the existing product photo site because the keyword shares the same topical cluster as product image generation, ecommerce photography, lifestyle scenes, and marketplace listing visuals.
+            AI scene generation is not connected in the current EditImages product. This page is kept as a planning reference while the live product focuses on local marketplace preparation, text replacement, and focused cloud edits.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">
-              Try the product photo generator
+            <Link href="/marketplace-image-fixer/" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">
+              Open the working tools
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a href="#use-cases" className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
@@ -59,12 +60,12 @@ export default function Page() {
       </section>
 
       <section className="mx-auto max-w-4xl px-6 py-14">
-        <h2 className="text-2xl font-bold tracking-tight">Why this page does not need a new domain</h2>
+        <h2 className="text-2xl font-bold tracking-tight">What EditImages supports today</h2>
         <div className="mt-6 space-y-4 text-gray-600">
           {[
-            "The searcher is looking for product visuals, not a separate brand category.",
-            "The existing product photo generator already matches the intent and can convert the traffic.",
-            "Adding this page strengthens topical authority around AI product photography instead of splitting signals.",
+            "Local marketplace image packs for Amazon, Etsy, and eBay.",
+            "Manual text replacement on product images in the browser.",
+            "A separate scene preview demo that does not create commercial-ready files.",
           ].map((item) => (
             <p key={item} className="flex gap-3">
               <CheckCircle className="mt-1 h-5 w-5 shrink-0 text-emerald-600" />

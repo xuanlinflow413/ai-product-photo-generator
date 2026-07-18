@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- demo previews are intentionally static external concepts. */
 
 import { useState, useCallback } from "react";
 import { Loader2, Download, RefreshCw } from "lucide-react";
@@ -148,7 +149,7 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
                   />
                 </div>
                 <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-white/90 p-2 opacity-0 transition group-hover:opacity-100">
-                  <button className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-slate-900 py-1.5 text-xs font-medium text-white">
+                  <button type="button" disabled aria-label="Preview only; no file is saved" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-slate-900 py-1.5 text-xs font-medium text-white disabled:cursor-default">
                     <Download className="h-3 w-3" />
                     Preview
                   </button>

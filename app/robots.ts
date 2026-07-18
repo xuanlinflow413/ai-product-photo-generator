@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: ["/account/", "/login/", "/api/"],
     },
     sitemap: "https://editimages.app/sitemap.xml",
   };

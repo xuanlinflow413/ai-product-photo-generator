@@ -136,7 +136,7 @@ export default function AmazonProductImageResizerPage() {
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
             <Link
-              href="/marketplace-image-fixer/"
+              href="/marketplace-image-fixer/?platform=amazon"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800"
             >
               Create an Amazon image pack

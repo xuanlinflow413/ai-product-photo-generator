@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- the preview source is a local data URL. */
 
 import { useState, useRef, useCallback } from "react";
 import { Upload, X, ImageIcon } from "lucide-react";
@@ -7,13 +8,24 @@ interface ImageUploaderProps {
   onImageSelect: (file: File | null) => void;
 }
 
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
 export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     (file: File) => {
-      if (!file.type.startsWith("image/")) return;
+      setError("");
+      if (!file.type.startsWith("image/")) {
+        setError("Choose a PNG, JPG, or other supported image file.");
+        return;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        setError("Image files must be 10MB or smaller.");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -44,6 +56,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
   const clear = useCallback(() => {
     setPreview(null);
+    setError("");
     onImageSelect(null);
     if (inputRef.current) inputRef.current.value = "";
   }, [onImageSelect]);
@@ -56,10 +69,13 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       {!preview ? (
         <div
+          role="button"
+          tabIndex={0}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => inputRef.current?.click()}
-          className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition hover:border-indigo-400 hover:bg-indigo-50/50"
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); inputRef.current?.click(); } }}
+          className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition hover:border-indigo-400 hover:bg-indigo-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
         >
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
             <Upload className="h-6 w-6 text-indigo-600" />
@@ -77,6 +93,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
             className="hidden"
             onChange={handleChange}
           />
+          {error && <p className="mt-3 text-sm text-red-700" role="alert">{error}</p>}
         </div>
       ) : (
         <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-3">

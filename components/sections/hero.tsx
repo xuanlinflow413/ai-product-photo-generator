@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- hero concepts are temporary external preview assets. */
 
 import { ArrowRight, Sparkles } from "lucide-react";
 

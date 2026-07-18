@@ -65,6 +65,8 @@ export function Navbar() {
           className="md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
         >
           {mobileOpen ? (
             <X className="h-6 w-6 text-slate-700" />
@@ -76,7 +78,7 @@ export function Navbar() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden">
+        <div id="mobile-navigation" className="border-t border-slate-100 bg-white px-4 py-4 md:hidden">
           <div className="flex flex-col gap-3">
             {navLinks.map((link) => link.href.startsWith("/") ? (
               <Link

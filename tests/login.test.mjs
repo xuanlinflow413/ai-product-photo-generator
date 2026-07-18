@@ -9,7 +9,7 @@ const loginSource = await readFile(
 
 test("login page keeps the production Google OAuth contract", () => {
   assert.match(loginSource, /https:\/\/auth\.editimages\.app\/api\/auth\/google/);
-  assert.match(loginSource, /returnUrl: "https:\/\/editimages\.app\/login\/"/);
+  assert.match(loginSource, /returnUrl: "https:\/\/editimages\.app\/login\/\?next=/);
   assert.match(loginSource, />\s*Continue with Google\s*</);
 });
 

@@ -75,3 +75,22 @@ test("marketplace projections expose only fixed enum properties", () => {
     result: "success",
   });
 });
+
+test("resource CTA projections expose only the page and fixed CTA id", () => {
+  const projected = analytics.plausibleEventFor({
+    name: analytics.conversionEvents.resourceCtaClick,
+    properties: {
+      page_path: "/resources/",
+      cta_id: "resource_marketplace_tool",
+      destination: "/marketplace-image-fixer/",
+      label: "private campaign label",
+    },
+  });
+  assert.deepEqual(projected, {
+    name: "resource_cta_click",
+    props: {
+      page_path: "/resources/",
+      cta_id: "resource_marketplace_tool",
+    },
+  });
+});

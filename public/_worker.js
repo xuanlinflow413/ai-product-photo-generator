@@ -27,6 +27,9 @@ const BILLING_ROUTES = new Map([
   ["/api/checkout", "/api/billing/checkout"],
   ["/api/billing/portal", "/api/billing/portal"],
   ["/api/images/edit", "/api/images/edit"],
+  ["/api/account", "/api/account"],
+  ["/api/exports/complete", "/api/exports/complete"],
+  ["/api/exports/fail", "/api/exports/fail"],
 ]);
 
 const analyticsContracts = {
@@ -66,6 +69,13 @@ const analyticsContracts = {
       platform_selection: ["amazon", "etsy", "ebay", "amazon_etsy", "amazon_ebay", "etsy_ebay", "amazon_etsy_ebay"],
       file_count_bucket: ["1", "2_5", "6_10", "11_25"],
       result: ["success"],
+    },
+  },
+  resource_cta_click: {
+    required: ["page_path", "cta_id"],
+    values: {
+      page_path: ["/resources/", "/product-image-qa-checklist/"],
+      cta_id: ["resource_checklist_tool", "resource_marketplace_tool", "resource_text_tool"],
     },
   },
   early_access_submit: {
@@ -230,7 +240,15 @@ async function handleAuth(request, env, path, url) {
     const active = await session(request, env);
     if (!active) return json({ authenticated: false });
     const user = await first(env, "SELECT id,email,plan_id,credits FROM users WHERE id=?", active.id);
-    return json(user ? { authenticated: true, user } : { authenticated: false });
+    if (!user) return json({ authenticated: false });
+    const orders = await many(env, "SELECT plan_id,status,created_at FROM orders WHERE user_id=? ORDER BY created_at DESC LIMIT 20", user.id);
+    return json({
+      authenticated: true,
+      user: { email: user.email, name: null },
+      credits: { balance: user.credits, lifetime_used: 0, lifetime_purchased: user.plan_id === "free" ? 0 : user.credits },
+      subscription: user.plan_id === "free" ? null : { status: "active", plan_id: user.plan_id, current_period_end: 0, cancel_at_period_end: 0 },
+      purchases: orders.results.map((order) => ({ plan_id: order.plan_id, status: order.status, purchased_at: Math.floor(new Date(order.created_at).getTime() / 1000) })),
+    });
   }
 
   if (path === "/api/auth/dev-login" && request.method === "POST") {
@@ -240,7 +258,7 @@ async function handleAuth(request, env, path, url) {
     if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return json({ error: "Valid email required" }, 400);
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email));
     const id = `dev_${[...new Uint8Array(digest)].slice(0, 12).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
-    await env.DB.prepare("INSERT INTO users(id,email,plan_id,credits,created_at) VALUES(?,?,'free',0,?) ON CONFLICT(id) DO NOTHING")
+    await env.DB.prepare("INSERT INTO users(id,email,plan_id,credits,created_at) VALUES(?,?,'free',2,?) ON CONFLICT(id) DO NOTHING")
       .bind(id, email, now()).run();
     const token = await signSession({ id, email }, env.SESSION_SECRET);
     return json({ ok: true }, 200, { "set-cookie": sessionCookie(token, url.protocol === "https:") });
@@ -363,9 +381,10 @@ async function handleWebhook(request, env) {
   const order = await first(env, "SELECT user_id,plan_id,status FROM orders WHERE id=?", event.data.orderId);
   if (!plan || !order || order.plan_id !== plan.id) return json({ error: "Order or plan not found" }, 404);
   if (order.status === "paid") return json({ received: true, idempotent: true });
+  const transition = await env.DB.prepare("UPDATE orders SET status='paid' WHERE id=? AND status='pending'").bind(event.data.orderId).run();
+  if (transition.meta?.changes !== 1) return json({ received: true, idempotent: true });
   await env.DB.batch([
     env.DB.prepare("INSERT INTO webhook_events(id,type,created_at) VALUES(?,?,?)").bind(event.id, event.type, now()),
-    env.DB.prepare("UPDATE orders SET status='paid' WHERE id=? AND status='pending'").bind(event.data.orderId),
     env.DB.prepare("UPDATE users SET credits=credits+?,plan_id=? WHERE id=?").bind(plan.credits, plan.id, order.user_id),
   ]);
   return json({ received: true, creditsGranted: plan.credits });
@@ -386,6 +405,9 @@ const worker = {
     const headers = new Headers(response.headers);
     headers.set("x-content-type-options", "nosniff");
     headers.set("referrer-policy", "strict-origin-when-cross-origin");
+    headers.set("x-frame-options", "DENY");
+    headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
     return new Response(response.body, { status: response.status, headers });
   },
 };

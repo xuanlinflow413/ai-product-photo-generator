@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileText, FolderTree, Images, ShieldCheck } from "lucide-react";
+import { TrackedLink } from "@/components/tracked-link";
 
 const canonicalUrl = "https://editimages.app/resources/";
 
@@ -82,13 +83,13 @@ export default function ResourcesPage() {
             Use these pages when you need a clean external link for marketplace image prep, manual QA, and browser-local export workflows.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/product-image-qa-checklist/" className="button-primary">
+            <TrackedLink href="/product-image-qa-checklist/" className="button-primary" conversion={{ name: "resource_cta_click", properties: { page_path: "/resources/", cta_id: "resource_checklist_tool" } }}>
               Open the QA checklist
               <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href="/marketplace-image-fixer/" className="button-secondary">
+            </TrackedLink>
+            <TrackedLink href="/marketplace-image-fixer/" className="button-secondary" conversion={{ name: "resource_cta_click", properties: { page_path: "/resources/", cta_id: "resource_marketplace_tool" } }}>
               Open the live tool
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>
@@ -138,12 +139,12 @@ export default function ResourcesPage() {
               The resource pages explain the workflow and its limits. The live tools handle local marketplace packs, local text replacement, and credit-based cloud actions when you sign in.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link href="/marketplace-image-fixer/" className="button-primary">
+              <TrackedLink href="/marketplace-image-fixer/" className="button-primary" conversion={{ name: "resource_cta_click", properties: { page_path: "/resources/", cta_id: "resource_marketplace_tool" } }}>
                 Marketplace Image Fixer
-              </Link>
-              <Link href="/edit-text-in-product-image/" className="button-secondary">
+              </TrackedLink>
+              <TrackedLink href="/edit-text-in-product-image/" className="button-secondary" conversion={{ name: "resource_cta_click", properties: { page_path: "/resources/", cta_id: "resource_text_tool" } }}>
                 Edit image text
-              </Link>
+              </TrackedLink>
             </div>
           </div>
         </div>

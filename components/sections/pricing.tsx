@@ -18,10 +18,10 @@ const plans = [
   },
   {
     name: SELLER_PLAN.name,
-    description: "For sellers using AI edits and cloud exports each month",
+    description: "For sellers using AI edits each month",
     price: formatSellerPrice(),
     period: "/ month",
-    features: [String(SELLER_PLAN.creditsPerPeriod) + " credits every billing month", "1 credit per successful AI edit", "1 credit per successful cloud export", "Local editing tools included free"],
+    features: [String(SELLER_PLAN.creditsPerPeriod) + " credits every billing month", "1 credit per successful AI edit", "Local editing tools included free", "No automatic overage charges"],
     cta: "Sign in to subscribe",
     href: "/account/",
     highlight: true,
@@ -32,7 +32,7 @@ export function Pricing() {
   return (
     <section id="pricing" className="bg-white px-4 py-16">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 text-center"><p className="text-xs font-bold uppercase text-indigo-700">Pricing</p><h2 className="mt-2 text-3xl font-bold text-slate-900">{SELLER_PLAN.creditsPerPeriod} credits for your monthly product image work</h2><p className="mx-auto mt-3 max-w-2xl text-slate-600">Use credits for successful AI edits and cloud exports. Keep using local editing tools for free.</p></div>
+        <div className="mb-10 text-center"><p className="text-xs font-bold uppercase text-indigo-700">Pricing</p><h2 className="mt-2 text-3xl font-bold text-slate-900">{SELLER_PLAN.creditsPerPeriod} credits for recurring AI image edits</h2><p className="mx-auto mt-3 max-w-2xl text-slate-600">Use credits for successful AI edits. Keep using local editing tools for free.</p></div>
         <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2">
           {plans.map((plan) => (
             <div key={plan.name} className={`relative rounded-lg border p-6 ${plan.highlight ? "border-2 border-slate-900 bg-slate-50" : "border-slate-200 bg-white"}`}>

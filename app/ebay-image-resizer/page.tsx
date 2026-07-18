@@ -132,7 +132,7 @@ export default function EbayImageResizerPage() {
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
             <Link
-              href="/marketplace-image-fixer/"
+              href="/marketplace-image-fixer/?platform=ebay"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800"
             >
               Create an eBay image pack
@@ -269,7 +269,7 @@ export default function EbayImageResizerPage() {
               the previews, and export an organized ZIP.
             </p>
           </div>
-          <Link href="/marketplace-image-fixer/" className="button-primary">
+          <Link href="/marketplace-image-fixer/?platform=ebay" className="button-primary">
             Open Marketplace Image Fixer
             <FolderTree className="h-4 w-4" aria-hidden="true" />
           </Link>

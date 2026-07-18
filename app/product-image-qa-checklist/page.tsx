@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, FileImage, FolderTree, ShieldCheck } from "lucide-react";
+import { TrackedLink } from "@/components/tracked-link";
 
 const canonicalUrl = "https://editimages.app/product-image-qa-checklist/";
 
@@ -144,12 +145,12 @@ export default function ProductImageQaChecklistPage() {
                 </div>
               </div>
               <div className="mt-5 flex flex-col gap-3">
-                <Link href="/marketplace-image-fixer/" className="button-primary">
+                <TrackedLink href="/marketplace-image-fixer/" className="button-primary" conversion={{ name: "resource_cta_click", properties: { page_path: "/product-image-qa-checklist/", cta_id: "resource_marketplace_tool" } }}>
                   Open Marketplace Image Fixer
-                </Link>
-                <Link href="/edit-text-in-product-image/" className="button-secondary">
+                </TrackedLink>
+                <TrackedLink href="/edit-text-in-product-image/" className="button-secondary" conversion={{ name: "resource_cta_click", properties: { page_path: "/product-image-qa-checklist/", cta_id: "resource_text_tool" } }}>
                   Open text editor
-                </Link>
+                </TrackedLink>
               </div>
             </aside>
 

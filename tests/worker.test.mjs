@@ -19,12 +19,13 @@ class MemoryD1 {
   async batch(statements) { for (const statement of statements) await statement.run(); }
   execute(sql, values) {
     if (sql.startsWith("INSERT INTO users")) {
-      if (!this.users.has(values[0])) this.users.set(values[0], { id: values[0], email: values[1], plan_id: "free", credits: 0, created_at: values[2] });
+      if (!this.users.has(values[0])) this.users.set(values[0], { id: values[0], email: values[1], plan_id: "free", credits: sql.includes("'free',2") ? 2 : 0, created_at: values[2] });
       return 1;
     }
     if (sql.startsWith("SELECT id,email,plan_id,credits FROM users")) return this.users.get(values[0]) ?? null;
     if (sql.startsWith("SELECT email,plan_id,credits FROM users")) return this.users.get(values[0]) ?? null;
     if (sql.startsWith("SELECT id,plan_id,status,amount_cents,created_at FROM orders")) return [...this.orders.values()].filter((x) => x.user_id === values[0]);
+    if (sql.startsWith("SELECT plan_id,status,created_at FROM orders")) return [...this.orders.values()].filter((x) => x.user_id === values[0]);
     if (sql.startsWith("SELECT id,status,credit_delta,created_at FROM export_jobs")) return [...this.exports.values()].filter((x) => x.user_id === values[0]);
     if (sql.startsWith("INSERT INTO orders")) {
       this.orders.set(values[0], { id: values[0], user_id: values[1], plan_id: values[2], provider: "mock", provider_checkout_id: values[3], status: "pending", amount_cents: values[4], created_at: values[5] }); return 1;
@@ -329,7 +330,11 @@ test("development login restores session and logout clears it", async () => {
   const env = makeEnv();
   const cookie = await login(env);
   const session = await call(env, "/api/auth/session", { headers: { cookie } });
-  assert.equal((await session.json()).authenticated, true);
+  const sessionData = await session.json();
+  assert.equal(sessionData.authenticated, true);
+  assert.equal(sessionData.credits.balance, 2);
+  assert.equal(sessionData.subscription, null);
+  assert.deepEqual(sessionData.purchases, []);
   const logout = await call(env, "/api/auth/logout", { method: "POST", headers: { cookie } });
   assert.match(logout.headers.get("set-cookie"), /Max-Age=0/);
 });
@@ -357,7 +362,7 @@ test("signed webhook grants credits once and invalid signature is rejected", asy
   const init = { method: "POST", headers: { "x-webhook-signature": signature }, body: event };
   assert.equal((await call(env, "/api/webhooks/payment", init)).status, 200);
   assert.equal((await (await call(env, "/api/webhooks/payment", init)).json()).idempotent, true);
-  assert.equal([...env.DB.users.values()][0].credits, 100);
+  assert.equal([...env.DB.users.values()][0].credits, 102);
 });
 
 test("failed export costs zero and completed export is idempotent", async () => {

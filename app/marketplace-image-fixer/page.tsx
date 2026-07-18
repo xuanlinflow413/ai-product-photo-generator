@@ -1,7 +1,7 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- previews are blob URLs created in the browser. */
 
 import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "react";
-import JSZip from "jszip";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { conversionEvents, fileCountBucket, platformSelection, trackConversion } from "@/lib/conversion-analytics";
@@ -36,11 +36,17 @@ type ProcessedImage = {
   warnings: string[];
 };
 
+const MAX_TOTAL_BYTES = 50 * 1024 * 1024;
+const MAX_IMAGE_PIXELS = 25_000_000;
+
 function readImage(file: File) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(`Could not read ${file.name}`));
+    image.onerror = () => {
+      if (image.src) URL.revokeObjectURL(image.src);
+      reject(new Error("Could not read " + file.name));
+    };
     image.src = URL.createObjectURL(file);
   });
 }
@@ -48,6 +54,10 @@ function readImage(file: File) {
 async function processImage(file: File, platform: Platform, index: number): Promise<ProcessedImage> {
   const rule = marketplaceRules[platform];
   const image = await readImage(file);
+  if (image.naturalWidth * image.naturalHeight > MAX_IMAGE_PIXELS) {
+    URL.revokeObjectURL(image.src);
+    throw new Error(file.name + " is larger than the 25 megapixel browser limit.");
+  }
   const canvas = document.createElement("canvas");
   canvas.width = rule.size;
   canvas.height = rule.size;
@@ -84,6 +94,15 @@ export default function MarketplaceImageFixerPage() {
   const exportedPackRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const requested = new URLSearchParams(window.location.search).get("platform")?.toLowerCase();
+      const platform = requested === "amazon" ? "Amazon" : requested === "etsy" ? "Etsy" : requested === "ebay" ? "eBay" : null;
+      if (platform) setPlatforms([platform]);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     api<{ authenticated: boolean }>("/api/auth/session")
       .then((value) => setAccount(value.authenticated ? "authenticated" : "anonymous"))
       .catch(() => setAccount("anonymous"));
@@ -99,12 +118,13 @@ export default function MarketplaceImageFixerPage() {
 
   function addFiles(incoming: FileList | File[]) {
     const selection = selectMarketplaceFiles(files, Array.from(incoming));
+    const totalBytes = selection.files.reduce((sum, file) => sum + file.size, 0);
     setFiles(selection.files);
     if (selection.accepted.length > 0) trackConversion({ name: conversionEvents.marketplaceFilesSelected, properties: { page_path: "/marketplace-image-fixer/", file_count_bucket: fileCountBucket(selection.files.length), result: "success" } });
     setProcessed({ Amazon: [], Etsy: [], eBay: [] });
     setStatus("idle");
     exportedPackRef.current = null;
-    setError(selectionMessage(selection.invalidCount, selection.overflowCount));
+    setError(totalBytes > MAX_TOTAL_BYTES ? "Keep one batch at or below 50MB total." : selectionMessage(selection.invalidCount, selection.overflowCount));
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
@@ -129,11 +149,18 @@ export default function MarketplaceImageFixerPage() {
 
   async function process() {
     if (!files.length || !platforms.length) return;
+    if (files.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL_BYTES) {
+      setError("Keep one batch at or below 50MB total.");
+      return;
+    }
     setStatus("processing");
     setError(null);
     try {
       const next = { Amazon: [], Etsy: [], eBay: [] } as Record<Platform, ProcessedImage[]>;
-      for (const platform of platforms) next[platform] = await Promise.all(files.map((file, index) => processImage(file, platform, index)));
+      for (const platform of platforms) {
+        next[platform] = [];
+        for (const [index, file] of files.entries()) next[platform].push(await processImage(file, platform, index));
+      }
       setProcessed(next);
       setStatus("ready");
       exportedPackRef.current = null;
@@ -149,6 +176,7 @@ export default function MarketplaceImageFixerPage() {
     setExporting(true);
     setError(null);
     try {
+      const { default: JSZip } = await import("jszip");
       const zip = new JSZip();
       const manifest = {
         generatedAt: new Date().toISOString(),
@@ -170,7 +198,7 @@ export default function MarketplaceImageFixerPage() {
       anchor.href = url;
       anchor.download = "marketplace-image-pack.zip";
       anchor.click();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       const packKey = `${platformSelection(platforms)}:${files.length}:${processed[platforms[0]].map((image) => image.url).join("|")}`;
       if (isNewPackEvent(exportedPackRef.current, packKey)) {
         trackConversion({ name: conversionEvents.marketplaceZipExport, properties: { page_path: "/marketplace-image-fixer/", platform_selection: platformSelection(platforms), file_count_bucket: fileCountBucket(files.length), result: "success" } });
@@ -188,7 +216,7 @@ export default function MarketplaceImageFixerPage() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <Link href="/" className="font-semibold text-slate-900">EditImages</Link>
-          <div className="flex items-center gap-4"><Link href="/edit-text-in-product-image/" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Edit product image text</Link><Link href={account==="authenticated"?"/account/":"/login/"} className="text-sm font-medium text-slate-700">{account==="authenticated"?"Account":"Sign in"}</Link></div>
+          <div className="flex items-center gap-4"><Link href="/edit-text-in-product-image/" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Edit product image text</Link><Link href={account==="authenticated"?"/account/":"/login/?next=/marketplace-image-fixer/"} className="text-sm font-medium text-slate-700">{account==="authenticated"?"Account":"Sign in"}</Link></div>
         </div>
       </header>
       <section className="border-b border-slate-200 bg-white px-4 py-14">
@@ -203,7 +231,7 @@ export default function MarketplaceImageFixerPage() {
         <div className="space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-semibold">1. Add product images</h2><span className="text-sm text-slate-500">{files.length}/25 files</span></div>
-            <div onDrop={handleDrop} onDragOver={(event) => event.preventDefault()} onClick={() => document.getElementById("marketplace-files")?.click()} className="cursor-pointer rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition hover:border-indigo-400 hover:bg-indigo-50/40">
+            <div role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); document.getElementById("marketplace-files")?.click(); } }} onDrop={handleDrop} onDragOver={(event) => event.preventDefault()} onClick={() => document.getElementById("marketplace-files")?.click()} className="cursor-pointer rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition hover:border-indigo-400 hover:bg-indigo-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
               <Upload className="mx-auto h-8 w-8 text-indigo-600" /><p className="mt-3 font-medium">Drop images here or choose files</p><p className="mt-1 text-xs text-slate-500">PNG, JPG, or WebP up to 10MB each. Nothing is uploaded.</p>
               <input id="marketplace-files" type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(event: ChangeEvent<HTMLInputElement>) => { if (event.target.files) addFiles(event.target.files); event.target.value = ""; }} />
             </div>
@@ -213,7 +241,7 @@ export default function MarketplaceImageFixerPage() {
         </div>
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><Archive className="h-5 w-5 text-indigo-600" /><h2 className="text-xl font-semibold">3. Review and export</h2></div>{status === "idle" && <p className="mt-4 text-sm leading-relaxed text-slate-600">Your processed previews and folder manifest will appear here after preparation.</p>}{status === "ready" && <><div className="mt-4 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800"><strong>{totalOutputs} files ready.</strong> Each selected marketplace has its own folder.</div><div className="mt-5 space-y-4">{platforms.map((platform) => <div key={platform}><div className="mb-2 flex items-center justify-between text-sm font-medium"><span>{platform}</span><span className="text-slate-500">{processed[platform].length} files</span></div><div className="grid grid-cols-4 gap-2">{processed[platform].slice(0, 4).map((image) => <img key={image.name} src={image.url} alt={`${platform} preview of ${image.name}`} className="aspect-square w-full rounded-md border border-slate-200 object-contain" />)}</div></div>)}</div><button disabled={exporting} onClick={downloadZip} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:bg-emerald-300">{exporting ? <><Loader2 className="h-5 w-5 animate-spin" /> Building ZIP...</> : <><Download className="h-5 w-5" /> Download ZIP</>}</button><p className="mt-3 text-center text-xs text-slate-500">Includes platform folders and manifest.json. Generated locally.</p></>}</aside>
       </section>
-      <section className="mx-auto max-w-6xl px-4 pb-14"><div className="border-y border-amber-200 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900"><strong>Free local export:</strong> ZIP generation remains free and runs entirely in your browser. Account credits are reserved for future server-side export workflows and are only deducted after a successful server-confirmed operation. {account==="authenticated"?<Link href="/account/" className="font-semibold underline">View account and checkout availability.</Link>:<Link href="/login/" className="font-semibold underline">Sign in to view the development billing preview.</Link>}</div></section>
+      <section className="mx-auto max-w-6xl px-4 pb-14"><div className="border-y border-amber-200 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900"><strong>Free local export:</strong> ZIP generation remains free and runs entirely in your browser. Credits are used by eligible AI editing actions in your account, not by this local ZIP workflow. {account==="authenticated"?<Link href="/account/" className="font-semibold underline">View account and AI edit availability.</Link>:<Link href="/login/?next=/marketplace-image-fixer/" className="font-semibold underline">Sign in to view account and AI edit availability.</Link>}</div></section>
     </main>
   );
 }

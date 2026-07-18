@@ -67,6 +67,7 @@ export function SceneSelector({ selected, onSelect }: SceneSelectorProps) {
             <button
               key={scene.id}
               onClick={() => onSelect(scene.id)}
+              aria-pressed={isSelected}
               className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${
                 isSelected
                   ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600"

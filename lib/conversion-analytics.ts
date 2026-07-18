@@ -5,10 +5,11 @@ export const conversionEvents = {
   marketplaceFilesSelected: "marketplace_files_selected",
   marketplacePackPrepared: "marketplace_pack_prepared",
   marketplaceZipExport: "marketplace_zip_export",
+  resourceCtaClick: "resource_cta_click",
   earlyAccessSubmit: "early_access_submit",
 } as const;
 
-type PagePath = "/" | "/replace-text-on-product-image/" | "/edit-text-in-product-image/" | "/marketplace-image-fixer/";
+type PagePath = "/" | "/replace-text-on-product-image/" | "/edit-text-in-product-image/" | "/marketplace-image-fixer/" | "/resources/" | "/product-image-qa-checklist/" | "/amazon-product-image-resizer/" | "/etsy-listing-image-resizer/" | "/ebay-image-resizer/";
 type Result = "success" | "validation_error" | "processing_error";
 export type FileCountBucket = "1" | "2_5" | "6_10" | "11_25";
 export type PlatformSelection = "amazon" | "etsy" | "ebay" | "amazon_etsy" | "amazon_ebay" | "etsy_ebay" | "amazon_etsy_ebay";
@@ -20,10 +21,11 @@ export type ConversionEvent =
   | { name: typeof conversionEvents.marketplaceFilesSelected; properties: { page_path: "/marketplace-image-fixer/"; file_count_bucket: FileCountBucket; result: Result } }
   | { name: typeof conversionEvents.marketplacePackPrepared; properties: { page_path: "/marketplace-image-fixer/"; platform_selection: PlatformSelection; file_count_bucket: FileCountBucket; result: Result } }
   | { name: typeof conversionEvents.marketplaceZipExport; properties: { page_path: "/marketplace-image-fixer/"; platform_selection: PlatformSelection; file_count_bucket: FileCountBucket; result: Result } }
+  | { name: typeof conversionEvents.resourceCtaClick; properties: { page_path: "/resources/" | "/product-image-qa-checklist/"; cta_id: "resource_checklist_tool" | "resource_marketplace_tool" | "resource_text_tool" } }
   | { name: typeof conversionEvents.earlyAccessSubmit; properties: { page_path: "/"; result: Result } };
 
 type PlausibleEvent = {
-  name: "seo_primary_cta_click" | "text_editor_file_selected" | "text_editor_export" | "marketplace_files_selected" | "marketplace_pack_prepared" | "marketplace_zip_export" | "pricing_cta_click" | "early_access_submit";
+  name: "seo_primary_cta_click" | "text_editor_file_selected" | "text_editor_export" | "marketplace_files_selected" | "marketplace_pack_prepared" | "marketplace_zip_export" | "pricing_cta_click" | "resource_cta_click" | "early_access_submit";
   props: Record<string, string>;
 };
 
@@ -68,6 +70,10 @@ export function plausibleEventFor(event: ConversionEvent): PlausibleEvent {
     case conversionEvents.marketplaceZipExport: {
       const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.marketplacePackPrepared | typeof conversionEvents.marketplaceZipExport }>;
       return { name: event.name, props: { page_path: properties.page_path, platform_selection: properties.platform_selection, file_count_bucket: properties.file_count_bucket, result: properties.result } };
+    }
+    case conversionEvents.resourceCtaClick: {
+      const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.resourceCtaClick }>;
+      return { name: event.name, props: { page_path: properties.page_path, cta_id: properties.cta_id } };
     }
     case conversionEvents.earlyAccessSubmit: {
       const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.earlyAccessSubmit }>;

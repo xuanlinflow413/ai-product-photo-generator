@@ -14,11 +14,6 @@ export default function Home() {
     name: "EditImages",
     applicationCategory: "DesignApplication",
     operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
     description:
       "A focused product image workspace for e-commerce sellers, with local batch preparation and text editing tools.",
     url: "https://editimages.app",

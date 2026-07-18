@@ -9,28 +9,37 @@ const AUTH_URL = "https://auth.editimages.app/api/auth/google";
 
 export default function Login() {
   const [message, setMessage] = useState("Checking your session...");
+  const [nextPath, setNextPath] = useState("/account/");
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get("auth_token");
-    if (token) {
-      api("/api/auth/exchange", { method: "POST", body: JSON.stringify({ token }) })
-        .then(() => {
-          history.replaceState(null, "", "/login/");
-          location.href = "/account/";
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(location.search);
+      const requestedNext = params.get("next") || "/account/";
+      const safeNext = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/account/";
+      setNextPath(safeNext);
+      const token = params.get("auth_token");
+      if (token) {
+        api("/api/auth/exchange", { method: "POST", body: JSON.stringify({ token }) })
+          .then(() => {
+            history.replaceState(null, "", "/login/");
+            location.href = safeNext;
+          })
+          .catch(() => setMessage("We couldn't complete sign-in. Please try again."));
+        return;
+      }
+      api<{ authenticated: boolean }>("/api/auth/session")
+        .then((session) => {
+          if (session.authenticated) location.href = safeNext;
+          else setMessage("Sign in with Google to manage your EditImages account.");
         })
-        .catch(() => setMessage("We couldn't complete sign-in. Please try again."));
-      return;
-    }
-    api<{ authenticated: boolean }>("/api/auth/session")
-      .then((session) => {
-        if (session.authenticated) location.href = "/account/";
-        else setMessage("Sign in with Google to manage your EditImages account.");
-      })
-      .catch(() => setMessage("Sign-in is temporarily unavailable. Please try again."));
+        .catch(() => setMessage("Sign-in is temporarily unavailable. Please try again."));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  const signInUrl = `${AUTH_URL}?${new URLSearchParams({ returnUrl: "https://editimages.app/login/" })}`;
+  const signInUrl = AUTH_URL + "?" + new URLSearchParams({
+    returnUrl: "https://editimages.app/login/?next=" + encodeURIComponent(nextPath),
+  }).toString();
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-100 text-slate-950">

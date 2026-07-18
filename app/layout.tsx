@@ -15,44 +15,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://editimages.app"),
-  title: "EditImages — Product Image Workspace for E-commerce Sellers",
+  title: "EditImages — Marketplace Image Tools for E-commerce Sellers",
   description:
-    "Create product scenes, prepare marketplace image packs, and edit text in product images with focused tools for e-commerce sellers.",
-  keywords: [
-    "AI product photo generator",
-    "product photo generator",
-    "ecommerce product photo generator",
-    "Amazon product photo generator",
-    "Etsy product photo generator",
-    "Shopify product image generator",
-    "lifestyle product photo generator",
-    "AI product photography tool",
-    "marketplace image fixer",
-    "Amazon image pack",
-    "bulk product image resize",
-  ],
+    "Prepare Amazon, Etsy, and eBay image packs locally in your browser, replace text on product images, and use focused cloud edits when available.",
   openGraph: {
-    title: "EditImages — Product Image Workspace for E-commerce Sellers",
+    title: "EditImages — Marketplace Image Tools for E-commerce Sellers",
     description:
-      "Create product scenes, prepare marketplace image packs, and edit text in product images.",
+      "Prepare marketplace image packs locally and edit product-image text with focused workflows.",
     type: "website",
     locale: "en_US",
     url: "https://editimages.app",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "EditImages product image workspace",
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "EditImages",
-    description:
-      "Preview AI-generated product photos for Amazon, Etsy, and Shopify listings.",
-    images: ["/og-image.png"],
+    description: "Prepare marketplace image packs locally and edit product-image text.",
   },
   robots: "index, follow",
   alternates: {

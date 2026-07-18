@@ -17,6 +17,15 @@ export function Footer() {
             <a href="/product-image-qa-checklist/" className="hover:text-indigo-600">
               QA Checklist
             </a>
+            <a href="/support/" className="hover:text-indigo-600">
+              Support
+            </a>
+            <a href="/privacy/" className="hover:text-indigo-600">
+              Privacy
+            </a>
+            <a href="/terms/" className="hover:text-indigo-600">
+              Terms
+            </a>
             <a href="#demo" className="hover:text-indigo-600">
               Scene Demo
             </a>

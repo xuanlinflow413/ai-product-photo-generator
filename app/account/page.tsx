@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Check, CreditCard, ExternalLink, LogOut, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, LogOut, RefreshCw, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { SELLER_PLAN, formatSellerPrice } from "@/lib/editimages-plan";
 
@@ -174,7 +174,7 @@ export default function Account() {
     return (
       <AccountShell>
         <StatusPanel title="Your session has expired" body="Sign in again to view your EditImages credits and subscription.">
-          <Link href="/login/" className="button-primary">Sign in</Link>
+          <Link href="/login/?next=/account/" className="button-primary">Sign in</Link>
         </StatusPanel>
       </AccountShell>
     );
@@ -338,7 +338,7 @@ export default function Account() {
         <h2 id="credits-explained-title" className="text-xl font-bold text-slate-950">Credits explained</h2>
         <div className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
           {[
-            ["What uses a credit?", "A successful AI edit or cloud export uses 1 credit. Local editing tools use none."],
+            ["What uses a credit?", "A successful AI edit uses 1 credit. Local editing tools and local ZIP exports use none."],
             ["What if an action fails?", "Failed or canceled actions should not use a credit."],
             ["Do credits roll over?", "Unused recurring credits do not roll over to the next billing period."],
             ["What happens at zero?", "Credit-based actions pause. There are no automatic overage charges, and local tools remain available."],
@@ -375,7 +375,7 @@ function PlanCard({ plan, active, busy, onCheckout }: { plan: Plan; active: bool
   const features = [
     plan.credits_allocated + " credits" + (isRecurringPlan(plan) ? " every billing " + plan.billing_interval : " included"),
     "1 credit per successful AI edit",
-    "1 credit per successful cloud export",
+    "Local ZIP exports stay free",
     isRecurringPlan(plan) ? "Local editing tools stay free" : "No subscription required",
     isRecurringPlan(plan) ? "Cancel anytime" : "Credits are added after purchase",
   ];
@@ -389,7 +389,7 @@ function PlanCard({ plan, active, busy, onCheckout }: { plan: Plan; active: bool
           </p>
           <h3 className="mt-2 text-2xl font-bold text-slate-950">{plan.name}</h3>
           <p className="mt-1 text-sm text-slate-600">
-            {isRecurringPlan(plan) ? "Best for recurring AI edits and cloud exports." : "A one-time credit purchase for lighter usage."}
+            {isRecurringPlan(plan) ? "Best for recurring AI image edits." : "A one-time credit purchase for lighter usage."}
           </p>
           <p className="mt-5 text-4xl font-bold text-slate-950">
             {formatPlanPrice(plan)} <span className="text-base font-medium text-slate-500">{formatPlanCadence(plan)}</span>
