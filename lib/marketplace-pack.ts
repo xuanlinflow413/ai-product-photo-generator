@@ -1,5 +1,6 @@
 export const MAX_MARKETPLACE_FILES = 25;
 export const MAX_MARKETPLACE_FILE_BYTES = 10 * 1024 * 1024;
+export const MAX_MARKETPLACE_OUTPUT_NAME_LENGTH = 255;
 export const SUPPORTED_MARKETPLACE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export type MarketplacePlatform = "Amazon" | "Etsy" | "eBay";
@@ -28,12 +29,18 @@ export function selectMarketplaceFiles<T extends MarketplaceFile>(current: T[], 
 }
 
 export function marketplaceOutputName(name: string, index: number): string {
-  const base = name
+  const fileName = name.split(/[\\/]/).pop() ?? "";
+  const normalizedBase = fileName
     .replace(/\.[^.]+$/, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${base || `product-${index + 1}`}.jpg`;
+    .replace(/^-+|-+$/g, "");
+  const sequence = String(index + 1).padStart(2, "0");
+  const extension = ".jpg";
+  const maxBaseLength = Math.max(1, MAX_MARKETPLACE_OUTPUT_NAME_LENGTH - sequence.length - 1 - extension.length);
+  const truncatedBase = (normalizedBase || "product").slice(0, maxBaseLength).replace(/-+$/g, "");
+  const safeBase = truncatedBase || "product".slice(0, maxBaseLength);
+  return `${sequence}-${safeBase}${extension}`;
 }
 
 export function selectionMessage(invalidCount: number, overflowCount: number): string | null {

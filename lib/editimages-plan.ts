@@ -1,11 +1,18 @@
+import {
+  SELLER_PLAN as SHARED_SELLER_PLAN,
+  formatPrice,
+} from "@/shared/editimages-plans.mjs";
+
+const sharedSellerPlan = SHARED_SELLER_PLAN!;
+
 export const SELLER_PLAN = {
-  id: "editimages-seller-monthly",
-  name: "Seller",
-  priceCents: 900,
-  creditsPerPeriod: 100,
-  interval: "month",
+  id: sharedSellerPlan.id,
+  name: sharedSellerPlan.name,
+  priceCents: sharedSellerPlan.priceCents,
+  creditsPerPeriod: sharedSellerPlan.credits,
+  interval: sharedSellerPlan.billingInterval,
 } as const;
 
 export function formatSellerPrice(priceCents: number = SELLER_PLAN.priceCents): string {
-  return `$${Math.round(priceCents / 100)}`;
+  return formatPrice(priceCents);
 }

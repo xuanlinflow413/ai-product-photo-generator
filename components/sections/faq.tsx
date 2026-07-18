@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { SELLER_PLAN } from "@/lib/editimages-plan";
 
 const faqs = [
   { question: "What uses a credit?", answer: "A successful AI edit uses 1 credit. A successful cloud export also uses 1 credit. Local editing tools do not use credits." },
   { question: "Will a failed edit use a credit?", answer: "No. A failed or canceled action should not use a credit. If your balance looks incorrect, contact support with the time of the action." },
-  { question: "Do monthly credits roll over?", answer: "No. Seller includes 100 credits for each billing month. Unused monthly credits expire when the next billing month begins." },
+  { question: "Do monthly credits roll over?", answer: "No. Seller includes " + SELLER_PLAN.creditsPerPeriod + " credits for each billing month. Unused monthly credits expire when the next billing month begins." },
   { question: "What happens when I run out of credits?", answer: "Credit-based actions pause until your next monthly reset. EditImages does not charge automatic overage fees. Local tools remain available." },
   { question: "How do the 2 welcome credits work?", answer: "Eligible new EditImages accounts receive 2 one-time credits after signing in. No payment method is required, and the grant does not start a subscription." },
   { question: "Are credits shared with other products?", answer: "No. Your sign-in may be shared, but EditImages credits are separate and can only be used in EditImages." },

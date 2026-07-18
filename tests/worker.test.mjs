@@ -336,25 +336,28 @@ test("development login restores session and logout clears it", async () => {
 
 test("checkout rejects anonymous and reports unavailable provider", async () => {
   const env = makeEnv();
-  assert.equal((await call(env, "/api/checkout", body({ planId: "starter" }))).status, 401);
+  assert.equal((await call(env, "/api/checkout", body({ plan_id: "editimages-seller-monthly" }))).status, 401);
   const cookie = await login(env);
-  const response = await call(env, "/api/checkout", { ...body({ planId: "starter" }), headers: { "content-type": "application/json", cookie } });
+  const response = await call(env, "/api/checkout", { ...body({ plan_id: "editimages-seller-monthly" }), headers: { "content-type": "application/json", cookie } });
   assert.equal(response.status, 503);
 });
 
 test("signed webhook grants credits once and invalid signature is rejected", async () => {
   const env = makeEnv({ PAYMENT_PROVIDER: "mock" });
+  const plans = await call(env, "/api/plans");
+  assert.equal(plans.status, 200);
+  assert.deepEqual((await plans.json()).plans, [{ id: "editimages-seller-monthly", name: "Seller", price_cents: 900, billing_interval: "month", credits_allocated: 100 }]);
   const cookie = await login(env);
-  const checkout = await call(env, "/api/checkout", { ...body({ planId: "starter" }), headers: { "content-type": "application/json", cookie } });
+  const checkout = await call(env, "/api/checkout", { ...body({ plan_id: "editimages-seller-monthly" }), headers: { "content-type": "application/json", cookie } });
   const { orderId } = await checkout.json();
-  const event = JSON.stringify({ id: "evt_1", type: "checkout.completed", data: { orderId, planId: "starter" } });
+  const event = JSON.stringify({ id: "evt_1", type: "checkout.completed", data: { orderId, planId: "editimages-seller-monthly" } });
   const invalid = await call(env, "/api/webhooks/payment", { method: "POST", headers: { "x-webhook-signature": "bad" }, body: event });
   assert.equal(invalid.status, 401);
   const signature = await signWebhook(event, env.WEBHOOK_SECRET);
   const init = { method: "POST", headers: { "x-webhook-signature": signature }, body: event };
   assert.equal((await call(env, "/api/webhooks/payment", init)).status, 200);
   assert.equal((await (await call(env, "/api/webhooks/payment", init)).json()).idempotent, true);
-  assert.equal([...env.DB.users.values()][0].credits, 50);
+  assert.equal([...env.DB.users.values()][0].credits, 100);
 });
 
 test("failed export costs zero and completed export is idempotent", async () => {

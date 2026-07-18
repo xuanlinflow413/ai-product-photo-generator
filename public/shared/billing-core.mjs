@@ -1,3 +1,8 @@
+import {
+  EDITIMAGES_PLANS,
+  toApiPlan,
+} from "../../shared/editimages-plans.mjs";
+
 const encoder = new TextEncoder();
 
 function base64Url(bytes) {
@@ -21,9 +26,16 @@ function timingSafeEqual(left, right) {
   return difference === 0;
 }
 
-export const PLANS = [
-  { id: "starter", name: "Starter", priceCents: 900, credits: 50 },
-];
+export const PLANS = EDITIMAGES_PLANS.map((plan) => ({
+  id: plan.id,
+  name: plan.name,
+  priceCents: plan.priceCents,
+  credits: plan.credits,
+  billingInterval: plan.billingInterval,
+  checkoutMode: plan.checkoutMode,
+}));
+
+export const PUBLIC_PLANS = EDITIMAGES_PLANS.map(toApiPlan);
 
 export const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), {
   status,

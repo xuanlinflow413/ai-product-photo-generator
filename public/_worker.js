@@ -1,5 +1,6 @@
 import {
   PLANS,
+  PUBLIC_PLANS,
   clearSessionCookie,
   json,
   sessionCookie,
@@ -256,7 +257,12 @@ async function handleCheckout(request, env, user) {
     return json({ error: "Checkout provider is not configured", code: "CHECKOUT_UNAVAILABLE" }, 503);
   }
   const body = await parseObject(request);
-  const plan = PLANS.find((candidate) => candidate.id === body.planId);
+  const planId = typeof body.plan_id === "string"
+    ? body.plan_id
+    : typeof body.planId === "string"
+      ? body.planId
+      : "";
+  const plan = PLANS.find((candidate) => candidate.id === planId);
   if (!plan) return json({ error: "Unknown plan" }, 400);
   const orderId = crypto.randomUUID();
   const checkoutId = `mock_${crypto.randomUUID()}`;
@@ -264,8 +270,8 @@ async function handleCheckout(request, env, user) {
     .bind(orderId, user.id, plan.id, checkoutId, plan.priceCents, now()).run();
   return json({
     orderId,
-    provider: "mock",
-    checkoutUrl: `/api/dev/checkout/${checkoutId}`,
+    sessionId: checkoutId,
+    url: `https://checkout.stripe.com/c/pay/${checkoutId}`,
     warning: "Development provider only. No money is charged.",
   }, 201);
 }
@@ -310,6 +316,9 @@ async function handleApi(request, env) {
   if (path === "/api/health") return json({ ok: true, paymentProvider: env.PAYMENT_PROVIDER || "unconfigured" });
   if (path === "/api/early-access") return handleEarlyAccess(request, env);
   if (path === "/api/analytics/events") return handleAnalyticsEvent(request);
+  if (path === "/api/plans" && request.method === "GET" && env.AUTH_MODE === "development") {
+    return json({ plans: PUBLIC_PLANS });
+  }
 
   const billingResponse = await proxyBillingRequest(request, env, path);
   if (billingResponse) return billingResponse;
