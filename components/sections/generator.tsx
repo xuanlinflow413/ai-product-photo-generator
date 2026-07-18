@@ -77,10 +77,10 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              Generating AI scenes...
+              Loading scene previews...
             </span>
           ) : (
-            "3. Generate AI Product Photos"
+            "3. Preview Scene Concepts"
           )}
         </button>
 
@@ -106,13 +106,13 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
             />
           </div>
           <p className="text-center text-sm text-slate-500">
-            {progress < 30 && "Analyzing product..."}
-            {progress >= 30 && progress < 60 && "Applying scene template..."}
-            {progress >= 60 && progress < 90 && "Rendering final image..."}
-            {progress >= 90 && "Finalizing..."}
+            {progress < 30 && "Loading product preview..."}
+            {progress >= 30 && progress < 60 && "Applying scene concept..."}
+            {progress >= 60 && progress < 90 && "Preparing demo results..."}
+            {progress >= 90 && "Finalizing preview..."}
           </p>
           <p className="text-center text-xs text-slate-400">
-            Demo: Mock generation (no real AI API connected)
+            Demo: Preview-only mock results
           </p>
         </div>
       )}
@@ -122,7 +122,7 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-lg font-semibold text-slate-900">
-              Generated Results
+              Demo Results
             </h4>
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
               Demo preview
@@ -130,9 +130,7 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
           </div>
 
           <p className="text-sm text-slate-500">
-            These are placeholder images showing what the output could look
-            like. In the full version, AI generates unique images from your
-            product and chosen scene. <span className="font-medium text-amber-700">Demo only — not for commercial use.</span>
+            These placeholder images only illustrate a direction. Use the live tools for marketplace exports and text changes. <span className="font-medium text-amber-700">Demo only — not for commercial use.</span>
           </p>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -150,9 +148,9 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
                   />
                 </div>
                 <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-white/90 p-2 opacity-0 transition group-hover:opacity-100">
-                  <button className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-indigo-600 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                  <button className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-slate-900 py-1.5 text-xs font-medium text-white">
                     <Download className="h-3 w-3" />
-                    Save
+                    Preview
                   </button>
                 </div>
               </div>
@@ -165,7 +163,7 @@ export function Generator({ hasImage, selectedScene }: GeneratorProps) {
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" />
-              Regenerate
+              Reload demo
             </button>
           </div>
         </div>

@@ -1,28 +1,28 @@
 "use client";
 
-import { Upload, Palette, Download } from "lucide-react";
+import { LayoutTemplate, SlidersHorizontal, Download } from "lucide-react";
 
 const steps = [
   {
     number: "01",
-    icon: Upload,
-    title: "Upload Your Product Photo",
+    icon: LayoutTemplate,
+    title: "Pick the Right Workflow",
     description:
-      "Drag and drop or click to upload any product image. No editing needed — the AI will handle background removal and positioning.",
+      "Start with the marketplace pack workflow for repeat exports, the text editor for wording changes, or the optional scene demo for concept previews.",
   },
   {
     number: "02",
-    icon: Palette,
-    title: "Choose a Scene Template",
+    icon: SlidersHorizontal,
+    title: "Prepare the Asset Locally",
     description:
-      "Pick from 6 professionally designed scenes: white background, lifestyle, in-hand, outdoor, luxury, or seasonal.",
+      "Resize for Amazon, Etsy, and eBay presets or place a replacement text overlay directly in the browser without uploading the source file.",
   },
   {
     number: "03",
     icon: Download,
-    title: "Preview AI-Generated Results",
+    title: "Export What You Need",
     description:
-      "See how your product looks in the chosen scene. In the full version, download high-res images ready for your store.",
+      "Download structured marketplace folders, PNG/JPG edits, or use credits only when a cloud action is available in your account.",
   },
 ];
 
@@ -35,8 +35,7 @@ export function HowItWorks() {
             How It Works
           </h2>
           <p className="mt-2 text-slate-600">
-            Three simple steps to preview AI product photography for your
-            e-commerce listings.
+            Three simple steps for the product-image jobs that recur every week.
           </p>
         </div>
 

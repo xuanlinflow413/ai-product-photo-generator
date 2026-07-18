@@ -8,7 +8,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { label: "Demo", href: "#demo" },
+    { label: "Scene Demo", href: "#demo" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Pricing", href: "#pricing" },
     { label: "FAQ", href: "#faq" },
@@ -46,12 +46,9 @@ export function Navbar() {
           >
             Sign in
           </Link>
-          <a
-            href="#demo"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-          >
-            Try Demo
-          </a>
+          <Link href="/marketplace-image-fixer/" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+            Open Tools
+          </Link>
         </nav>
 
         {/* Mobile menu button */}
@@ -97,13 +94,13 @@ export function Navbar() {
             >
               Sign in
             </Link>
-            <a
-              href="#demo"
+            <Link
+              href="/marketplace-image-fixer/"
               className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-indigo-700"
               onClick={() => setMobileOpen(false)}
             >
-              Try Demo
-            </a>
+              Open Tools
+            </Link>
           </div>
         </div>
       )}
