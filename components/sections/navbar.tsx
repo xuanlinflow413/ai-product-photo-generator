@@ -8,6 +8,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
+    { label: "Resources", href: "/resources/" },
     { label: "Scene Demo", href: "#demo" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Pricing", href: "#pricing" },
@@ -24,7 +25,15 @@ export function Navbar() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => (
+          {navLinks.map((link) => link.href.startsWith("/") ? (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium text-slate-600 hover:text-indigo-600"
+            >
+              {link.label}
+            </Link>
+          ) : (
             <a
               key={link.href}
               href={link.href}
@@ -69,7 +78,16 @@ export function Navbar() {
       {mobileOpen && (
         <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden">
           <div className="flex flex-col gap-3">
-            {navLinks.map((link) => (
+            {navLinks.map((link) => link.href.startsWith("/") ? (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-slate-600 hover:text-indigo-600"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ) : (
               <a
                 key={link.href}
                 href={link.href}

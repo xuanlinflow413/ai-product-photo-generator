@@ -11,8 +11,14 @@ export function Footer() {
           </div>
 
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500 sm:justify-end">
+            <a href="/resources/" className="hover:text-indigo-600">
+              Resources
+            </a>
+            <a href="/product-image-qa-checklist/" className="hover:text-indigo-600">
+              QA Checklist
+            </a>
             <a href="#demo" className="hover:text-indigo-600">
-              Demo
+              Scene Demo
             </a>
             <a href="#how-it-works" className="hover:text-indigo-600">
               How It Works
@@ -36,7 +42,7 @@ export function Footer() {
             rights reserved.
           </p>
           <p className="mt-1">
-            Built for Amazon, Etsy, and Shopify sellers.
+            Built for Amazon, Etsy, and eBay sellers.
           </p>
         </div>
       </div>
