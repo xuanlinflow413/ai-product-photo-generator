@@ -41,6 +41,20 @@ const resources = [
     icon: Images,
   },
   {
+    href: "/etsy-listing-image-resizer/",
+    eyebrow: "Guide",
+    title: "Etsy listing image resizer",
+    body: "A focused Etsy-specific reference for 2000 x 2000 JPG preparation and manual final review.",
+    icon: Images,
+  },
+  {
+    href: "/ebay-image-resizer/",
+    eyebrow: "Guide",
+    title: "eBay image resizer",
+    body: "A focused eBay-specific reference for 1600 x 1600 JPG preparation and manual final review.",
+    icon: Images,
+  },
+  {
     href: "/replace-text-on-product-image/",
     eyebrow: "Guide",
     title: "Replace text on a product image",
