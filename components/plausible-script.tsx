@@ -11,7 +11,7 @@ export function PlausibleScript() {
         {`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}
       </Script>
       <Script
-        src="https://plausible.io/js/script.js"
+        src="https://plausible.shipsolo.io/js/script.js"
         data-domain={PLAUSIBLE_DOMAIN}
         strategy="afterInteractive"
       />
