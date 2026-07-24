@@ -13,12 +13,12 @@ const canonicalUrl =
   "https://editimages.app/resize-product-images-for-marketplaces/";
 
 export const metadata: Metadata = {
-  title: "Resize Product Images for Amazon, Etsy and eBay | EditImages",
+  title: "Resize Product Images for Multiple Marketplaces | EditImages",
   description:
     "Turn up to 25 product images into organized Amazon, Etsy and eBay JPG packs in your browser, then download one ZIP with a manifest.",
   alternates: { canonical: canonicalUrl },
   openGraph: {
-    title: "Resize Product Images for Amazon, Etsy and eBay | EditImages",
+    title: "Resize Product Images for Multiple Marketplaces | EditImages",
     description:
       "Prepare organized Amazon, Etsy and eBay JPG packs locally in your browser.",
     type: "article",
@@ -125,20 +125,20 @@ export default function ResizeProductImagesForMarketplacesPage() {
             Marketplace image workflow
           </p>
           <h1 className="mt-4 max-w-4xl text-4xl font-bold sm:text-6xl">
-            Resize product images for Amazon, Etsy and eBay
+            Resize product images for multiple marketplaces
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
-            Prepare the same source photos for several marketplaces without
-            repeating exports in a general design tool. Add a local batch,
-            choose the packs you need, review the results, and download one
-            organized ZIP.
+            Prepare one source batch for Amazon, Etsy, and eBay without
+            repeating the resize and export process for every channel. Choose
+            two or more packs for the multi-marketplace workflow, review the
+            results, and download separate folders plus a manifest in one ZIP.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
             <Link
               href="/marketplace-image-fixer/"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800"
             >
-              Prepare your marketplace image pack
+              Open Marketplace Image Fixer
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </Link>
             <p className="flex items-center gap-2 text-sm text-slate-600">
@@ -146,7 +146,7 @@ export default function ResizeProductImagesForMarketplacesPage() {
                 className="h-5 w-5 shrink-0 text-emerald-700"
                 aria-hidden="true"
               />
-              Up to 25 files, processed in your browser
+              1–25 files supported; 2+ marketplaces is the best fit
             </p>
           </div>
         </div>

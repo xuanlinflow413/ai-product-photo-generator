@@ -15,7 +15,7 @@ export type FileCountBucket = "1" | "2_5" | "6_10" | "11_25";
 export type PlatformSelection = "amazon" | "etsy" | "ebay" | "amazon_etsy" | "amazon_ebay" | "etsy_ebay" | "amazon_etsy_ebay";
 
 export type ConversionEvent =
-  | { name: typeof conversionEvents.seoPrimaryCtaClick; properties: { page_path: PagePath; source_page: PagePath | "direct"; cta_id: "guide_hero_editor" | "guide_final_editor" | "pricing_free_tools" | "pricing_subscribe" } }
+  | { name: typeof conversionEvents.seoPrimaryCtaClick; properties: { page_path: PagePath; source_page: PagePath | "direct"; cta_id: "guide_hero_editor" | "guide_final_editor" | "pricing_free_tools" | "pricing_subscribe" | "marketplace_export_sign_in" | "marketplace_export_account" } }
   | { name: typeof conversionEvents.textEditorFileSelected; properties: { page_path: "/edit-text-in-product-image/"; file_count_bucket: "1"; result: Result } }
   | { name: typeof conversionEvents.textEditorExport; properties: { page_path: "/edit-text-in-product-image/"; format: "png" | "jpg"; result: Result } }
   | { name: typeof conversionEvents.marketplaceFilesSelected; properties: { page_path: "/marketplace-image-fixer/"; file_count_bucket: FileCountBucket; result: Result } }
@@ -49,8 +49,9 @@ export function plausibleEventFor(event: ConversionEvent): PlausibleEvent {
   switch (event.name) {
     case conversionEvents.seoPrimaryCtaClick: {
       const { properties } = event as Extract<ConversionEvent, { name: typeof conversionEvents.seoPrimaryCtaClick }>;
+      const pricingCtaIds = new Set(["pricing_free_tools", "pricing_subscribe", "marketplace_export_sign_in", "marketplace_export_account"]);
       return {
-        name: properties.cta_id === "pricing_free_tools" || properties.cta_id === "pricing_subscribe" ? "pricing_cta_click" : event.name,
+        name: pricingCtaIds.has(properties.cta_id) ? "pricing_cta_click" : event.name,
         props: { page_path: properties.page_path, source_page: properties.source_page, cta_id: properties.cta_id },
       };
     }

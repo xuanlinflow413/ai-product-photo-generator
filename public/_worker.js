@@ -16,6 +16,9 @@ const many = (env, sql, ...bindings) => env.DB.prepare(sql).bind(...bindings).al
 const EARLY_ACCESS_BODY_LIMIT = 2048;
 const EARLY_ACCESS_RATE_LIMIT = 5;
 const EARLY_ACCESS_RATE_WINDOW_SECONDS = 60 * 60;
+const FEEDBACK_BODY_LIMIT = 4096;
+const FEEDBACK_RATE_LIMIT = 5;
+const FEEDBACK_RATE_WINDOW_SECONDS = 60 * 60;
 const ANALYTICS_BODY_LIMIT = 1024;
 const BILLING_ORIGIN = "https://auth.editimages.app";
 const BILLING_ROUTES = new Map([
@@ -36,9 +39,9 @@ const analyticsContracts = {
   seo_primary_cta_click: {
     required: ["page_path", "source_page", "cta_id"],
     values: {
-      page_path: ["/", "/replace-text-on-product-image/"],
-      source_page: ["/", "/replace-text-on-product-image/", "direct"],
-      cta_id: ["guide_hero_editor", "guide_final_editor", "pricing_free_tools", "pricing_subscribe"],
+      page_path: ["/", "/replace-text-on-product-image/", "/marketplace-image-fixer/"],
+      source_page: ["/", "/replace-text-on-product-image/", "/marketplace-image-fixer/", "direct"],
+      cta_id: ["guide_hero_editor", "guide_final_editor", "pricing_free_tools", "pricing_subscribe", "marketplace_export_sign_in", "marketplace_export_account"],
     },
   },
   text_editor_file_selected: {
@@ -164,6 +167,64 @@ async function handleEarlyAccess(request, env) {
   const id = crypto.randomUUID();
   await env.DB.prepare("INSERT INTO early_access_leads(id,email,plan_id,use_case,source,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET plan_id=excluded.plan_id,use_case=excluded.use_case,source=excluded.source")
     .bind(id, email, plan, useCase, "homepage_pricing", now()).run();
+  return json({ ok: true }, 201);
+}
+
+async function feedbackBody(request) {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("application/json")) return { response: json({ error: "JSON body required" }, 415) };
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > FEEDBACK_BODY_LIMIT) return { response: json({ error: "Request body too large" }, 413) };
+  const rawBody = await request.text();
+  if (new TextEncoder().encode(rawBody).byteLength > FEEDBACK_BODY_LIMIT) return { response: json({ error: "Request body too large" }, 413) };
+  let body;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return { response: json({ error: "Invalid JSON body" }, 400) };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { response: json({ error: "Invalid JSON body" }, 400) };
+  return { body };
+}
+
+async function feedbackRateLimit(request, env) {
+  const ip = request.headers.get("cf-connecting-ip")?.trim();
+  if (!ip) return json({ error: "Client identity unavailable", code: "FEEDBACK_UNAVAILABLE" }, 503);
+  const epochSeconds = Math.floor(Date.now() / 1000);
+  const windowStart = Math.floor(epochSeconds / FEEDBACK_RATE_WINDOW_SECONDS) * FEEDBACK_RATE_WINDOW_SECONDS;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${ip}:${windowStart}`));
+  const bucketKey = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  const expiresAt = windowStart + FEEDBACK_RATE_WINDOW_SECONDS;
+  const bucket = await env.DB.prepare("INSERT INTO feedback_rate_limits(bucket_key,request_count,expires_at) VALUES(?,1,?) ON CONFLICT(bucket_key) DO UPDATE SET request_count=request_count+1 RETURNING request_count")
+    .bind(bucketKey, expiresAt).first();
+  if (!bucket || bucket.request_count > FEEDBACK_RATE_LIMIT) {
+    return json({ error: "Too many requests" }, 429, { "retry-after": String(Math.max(1, expiresAt - epochSeconds)) });
+  }
+  if (bucket.request_count === 1) {
+    await env.DB.prepare("DELETE FROM feedback_rate_limits WHERE bucket_key IN (SELECT bucket_key FROM feedback_rate_limits WHERE expires_at<? LIMIT 20)").bind(epochSeconds).run();
+  }
+  return null;
+}
+
+async function handleFeedback(request, env) {
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, { allow: "POST" });
+  if (!env.DB) return json({ error: "Feedback is not configured", code: "FEEDBACK_UNAVAILABLE" }, 503);
+  const parsed = await feedbackBody(request);
+  if (parsed.response) return parsed.response;
+  const body = parsed.body;
+  if (typeof body.company !== "string" || typeof body.website !== "string") return json({ error: "Invalid form submission" }, 400);
+  if (body.company || body.website) return json({ ok: true }, 202);
+  const rateLimited = await feedbackRateLimit(request, env);
+  if (rateLimited) return rateLimited;
+  const category = typeof body.category === "string" ? body.category.trim() : "";
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const pagePath = typeof body.pagePath === "string" && /^\/[a-z0-9/?=&_.-]{0,119}$/i.test(body.pagePath) ? body.pagePath : "/";
+  if (!["text_edit", "ai_edit", "marketplace", "other"].includes(category)) return json({ error: "Choose a valid suggestion type" }, 400);
+  if (message.length < 10 || message.length > 2000) return json({ error: "Suggestion must be between 10 and 2000 characters" }, 400);
+  if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return json({ error: "Valid email required" }, 400);
+  await env.DB.prepare("INSERT INTO feedback(id,category,message,email,page_path,created_at) VALUES(?,?,?,?,?,?)")
+    .bind(crypto.randomUUID(), category, message, email, pagePath, now()).run();
   return json({ ok: true }, 201);
 }
 
@@ -333,6 +394,7 @@ async function handleApi(request, env) {
   const path = url.pathname.replace(/\/$/, "") || "/";
   if (path === "/api/health") return json({ ok: true, paymentProvider: env.PAYMENT_PROVIDER || "unconfigured" });
   if (path === "/api/early-access") return handleEarlyAccess(request, env);
+  if (path === "/api/feedback") return handleFeedback(request, env);
   if (path === "/api/analytics/events") return handleAnalyticsEvent(request);
   if (path === "/api/plans" && request.method === "GET" && env.AUTH_MODE === "development") {
     return json({ plans: PUBLIC_PLANS });

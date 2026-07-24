@@ -1,27 +1,19 @@
 import type { Metadata } from "next";
 
-const url = "https://editimages.app/edit-text-in-product-image/";
+const canonicalUrl = "https://editimages.app/edit-text-in-product-image/";
 
 export const metadata: Metadata = {
-  title: "Edit Text in Product Image | EditImages",
-  description: "Replace text on product images locally in your browser and export PNG or JPG.",
-  alternates: { canonical: url },
+  title: "AI Product Image Editor | EditImages",
+  description: "Remove text from a white product-image label in your browser, or use focused AI tasks for authorized overlays, cleanup, backgrounds, and product scenes.",
+  alternates: { canonical: canonicalUrl },
   openGraph: {
-    title: "Edit Text in Product Image | EditImages",
-    description: "Replace text on product images locally in your browser and export PNG or JPG.",
-    url,
+    title: "AI Product Image Editor | EditImages",
+    description: "Replace product-image wording exactly, review the result, and export it for your listing workflow.",
+    url: canonicalUrl,
     type: "website",
   },
 };
 
-export default function EditTextLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Edit Text in Product Image",
-    url,
-    applicationCategory: "DesignApplication",
-    operatingSystem: "Web browser",
-    description: "Replace text on product images locally in your browser and export PNG or JPG.",
-  }) }} /></>;
+export default function EditTextInProductImageLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return children;
 }

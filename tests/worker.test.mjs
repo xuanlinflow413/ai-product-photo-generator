@@ -14,7 +14,7 @@ class Statement {
 }
 
 class MemoryD1 {
-  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); this.leads = new Map(); this.rateLimits = new Map(); }
+  constructor() { this.users = new Map(); this.orders = new Map(); this.events = new Map(); this.exports = new Map(); this.leads = new Map(); this.rateLimits = new Map(); this.feedback = new Map(); this.feedbackRateLimits = new Map(); }
   prepare(sql) { return new Statement(this, sql); }
   async batch(statements) { for (const statement of statements) await statement.run(); }
   execute(sql, values) {
@@ -52,6 +52,20 @@ class MemoryD1 {
     }
     if (sql.startsWith("DELETE FROM early_access_rate_limits")) {
       for (const [key, bucket] of this.rateLimits) if (bucket.expires_at < values[0]) this.rateLimits.delete(key);
+      return 1;
+    }
+    if (sql.startsWith("INSERT INTO feedback(")) {
+      this.feedback.set(values[0], { id: values[0], category: values[1], message: values[2], email: values[3], page_path: values[4], created_at: values[5] });
+      return 1;
+    }
+    if (sql.startsWith("INSERT INTO feedback_rate_limits")) {
+      const count = (this.feedbackRateLimits.get(values[0])?.request_count ?? 0) + 1;
+      const bucket = { request_count: count, expires_at: values[1] };
+      this.feedbackRateLimits.set(values[0], bucket);
+      return bucket;
+    }
+    if (sql.startsWith("DELETE FROM feedback_rate_limits")) {
+      for (const [key, bucket] of this.feedbackRateLimits) if (bucket.expires_at < values[0]) this.feedbackRateLimits.delete(key);
       return 1;
     }
     throw new Error(`Unhandled SQL: ${sql}`);
@@ -137,6 +151,40 @@ test("early access signup rejects oversized and non-JSON bodies", async () => {
   assert.equal(nonJson.status, 415);
 });
 
+const feedback = (overrides = {}) => ({ category: "text_edit", message: "The white box still shows letters after removal.", email: "", pagePath: "/edit-text-in-product-image/", company: "", website: "", ...overrides });
+
+test("feedback accepts a valid suggestion and keeps only the submitted fields", async () => {
+  const env = makeEnv();
+  const response = await call(env, "/api/feedback", body(feedback({ email: " User@Example.com " })));
+  assert.equal(response.status, 201);
+  const saved = [...env.DB.feedback.values()][0];
+  assert.equal(saved.category, "text_edit");
+  assert.equal(saved.email, "user@example.com");
+  assert.equal(saved.page_path, "/edit-text-in-product-image/");
+});
+
+test("feedback rejects invalid content and fails closed without D1", async () => {
+  assert.equal((await call(makeEnv(), "/api/feedback", body(feedback({ category: "made_up" })))).status, 400);
+  assert.equal((await call(makeEnv(), "/api/feedback", body(feedback({ message: "short" })))).status, 400);
+  assert.equal((await call(makeEnv(), "/api/feedback", body(feedback({ email: "not-an-email" })))).status, 400);
+  const unavailable = await call(makeEnv({ DB: undefined }), "/api/feedback", body(feedback()));
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json()).code, "FEEDBACK_UNAVAILABLE");
+});
+
+test("feedback honeypot does not write and rate limits the sixth request", async () => {
+  const botEnv = makeEnv();
+  assert.equal((await call(botEnv, "/api/feedback", body(feedback({ website: "https://spam.example" })))).status, 202);
+  assert.equal(botEnv.DB.feedback.size, 0);
+  const env = makeEnv();
+  for (let index = 0; index < 5; index += 1) {
+    assert.equal((await call(env, "/api/feedback", body(feedback({ message: `Suggestion number ${index} is useful.` })))).status, 201);
+  }
+  const limited = await call(env, "/api/feedback", body(feedback({ message: "The sixth suggestion should be limited." })));
+  assert.equal(limited.status, 429);
+  assert.ok(Number(limited.headers.get("retry-after")) > 0);
+});
+
 test("analytics accepts an allowlisted conversion event without authentication", async () => {
   const event = {
     name: "text_editor_export",
@@ -159,6 +207,31 @@ test("analytics accepts the application/json content type sent by sendBeacon", a
     body: JSON.stringify(event),
   });
   assert.equal(response.status, 202);
+});
+
+test("analytics accepts only fixed post-export account CTA values", async () => {
+  const env = makeEnv();
+  for (const ctaId of ["marketplace_export_sign_in", "marketplace_export_account"]) {
+    const response = await call(env, "/api/analytics/events", body({
+      name: "seo_primary_cta_click",
+      properties: {
+        page_path: "/marketplace-image-fixer/",
+        source_page: "/marketplace-image-fixer/",
+        cta_id: ctaId,
+      },
+    }));
+    assert.equal(response.status, 202, ctaId);
+  }
+
+  const invented = await call(env, "/api/analytics/events", body({
+    name: "seo_primary_cta_click",
+    properties: {
+      page_path: "/marketplace-image-fixer/",
+      source_page: "/marketplace-image-fixer/",
+      cta_id: "marketplace_export_buy_now",
+    },
+  }));
+  assert.equal(invented.status, 400);
 });
 
 test("analytics rejects unknown, extra, and sensitive event properties", async () => {
@@ -203,17 +276,19 @@ test("analytics endpoint allows only POST", async () => {
   assert.equal(response.headers.get("allow"), "POST");
 });
 
-test("0002 migration applies after 0001 without losing existing billing data", async () => {
+test("incremental migrations apply without losing existing billing data", async () => {
   const db = new DatabaseSync(":memory:");
   const migration1 = await readFile(new URL("../migrations/0001_billing.sql", import.meta.url), "utf8");
   const migration2 = await readFile(new URL("../migrations/0002_early_access.sql", import.meta.url), "utf8");
+  const migration3 = await readFile(new URL("../migrations/0003_feedback.sql", import.meta.url), "utf8");
   db.exec(migration1);
   db.prepare("INSERT INTO users(id,email,created_at) VALUES(?,?,?)").run("existing-user", "existing@example.com", "2026-07-13T00:00:00.000Z");
   db.exec(migration2);
+  db.exec(migration3);
   assert.equal(db.prepare("SELECT email FROM users WHERE id=?").get("existing-user").email, "existing@example.com");
   assert.deepEqual(
-    db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('early_access_leads','early_access_rate_limits') ORDER BY name").all().map((row) => row.name),
-    ["early_access_leads", "early_access_rate_limits"],
+    db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('early_access_leads','early_access_rate_limits','feedback','feedback_rate_limits') ORDER BY name").all().map((row) => row.name),
+    ["early_access_leads", "early_access_rate_limits", "feedback", "feedback_rate_limits"],
   );
   db.close();
 });
@@ -307,13 +382,17 @@ test("AI image edits proxy only through the branded billing service", async () =
   }) });
   const form = new FormData();
   form.append("image", new Blob(["image"], { type: "image/jpeg" }), "product.jpg");
-  form.append("instruction", "Replace label text");
+  form.append("operation", "replace_background");
+  form.append("instruction", "Use a clean light-gray studio background");
   form.append("idempotencyKey", "edit-key-1234567890");
   const response = await call(env, "/api/images/edit", { method: "POST", body: form, headers: { cookie: "session=browser-session" } });
   assert.equal(response.status, 200);
   assert.equal(new URL(upstreamRequest.url).origin, "https://auth.editimages.app");
   assert.equal(new URL(upstreamRequest.url).pathname, "/api/images/edit");
   assert.equal(upstreamRequest.headers.get("x-forwarded-host"), "auth.editimages.app");
+  const forwardedForm = await upstreamRequest.formData();
+  assert.equal(forwardedForm.get("operation"), "replace_background");
+  assert.equal(forwardedForm.get("instruction"), "Use a clean light-gray studio background");
 });
 
 test("disabled auth mode rejects development login on localhost", async () => {

@@ -1,4 +1,5 @@
 import { Camera } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -26,8 +27,8 @@ export function Footer() {
             <a href="/terms/" className="hover:text-indigo-600">
               Terms
             </a>
-            <a href="#demo" className="hover:text-indigo-600">
-              Scene Demo
+            <a href="/resize-product-images-for-marketplaces/" className="hover:text-indigo-600">
+              Marketplace Guide
             </a>
             <a href="#how-it-works" className="hover:text-indigo-600">
               How It Works
@@ -38,6 +39,9 @@ export function Footer() {
             <a href="#faq" className="hover:text-indigo-600">
               FAQ
             </a>
+            <Link href="/#feedback" className="hover:text-indigo-600">
+              Feedback
+            </Link>
             <a href="/marketplace-image-fixer/" className="hover:text-indigo-600">
               Image Packs
             </a>

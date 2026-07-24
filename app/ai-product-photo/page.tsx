@@ -5,7 +5,7 @@ import { ArrowRight, Camera, CheckCircle, Sparkles } from "lucide-react";
 export const metadata: Metadata = {
   title: "AI Product Photo Guide for E-Commerce Sellers",
   description:
-    "A guide to evaluating AI product-photo workflows for marketplace sellers. EditImages currently focuses on local image preparation and text replacement.",
+    "A guide to exact browser text replacement and focused AI product-photo editing for marketplace sellers.",
   alternates: { canonical: "/ai-product-photo/" },
   robots: { index: false, follow: false },
 };
@@ -33,11 +33,11 @@ export default function Page() {
             AI product photo workflows for e-commerce sellers
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            AI scene generation is not connected in the current EditImages product. This page is kept as a planning reference while the live product focuses on local marketplace preparation, text replacement, and focused cloud edits.
+            EditImages uses deterministic browser rendering when wording must be exact, plus focused AI image editing for authorized overlays, cleanup, backgrounds, and product scenes. Start with one source image and review every output before using it in a listing.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/marketplace-image-fixer/" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">
-              Open the working tools
+            <Link href="/#ai-generator" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">
+              Open the AI product image editor
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a href="#use-cases" className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
@@ -63,9 +63,9 @@ export default function Page() {
         <h2 className="text-2xl font-bold tracking-tight">What EditImages supports today</h2>
         <div className="mt-6 space-y-4 text-gray-600">
           {[
-            "Local marketplace image packs for Amazon, Etsy, and eBay.",
-            "Manual text replacement on product images in the browser.",
-            "A separate scene preview demo that does not create commercial-ready files.",
+            "Exact browser text replacement when spelling, numbers, or translations must be preserved.",
+            "Focused AI edits for authorized overlays, cleanup, backgrounds, and scenes.",
+            "Local Amazon, Etsy, and eBay image packs after you review the edited result.",
           ].map((item) => (
             <p key={item} className="flex gap-3">
               <CheckCircle className="mt-1 h-5 w-5 shrink-0 text-emerald-600" />

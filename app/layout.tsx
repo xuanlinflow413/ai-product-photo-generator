@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://editimages.app"),
-  title: "EditImages — Marketplace Image Tools for E-commerce Sellers",
+  title: "AI Product Image Editor for E-commerce Sellers | EditImages",
   description:
-    "Prepare Amazon, Etsy, and eBay image packs locally in your browser, replace text on product images, and use focused cloud edits when available.",
+    "Replace product-image wording exactly in the browser, use focused AI tasks for authorized overlays, backgrounds, cleanup, and scenes, then prepare marketplace-ready exports.",
   openGraph: {
-    title: "EditImages — Marketplace Image Tools for E-commerce Sellers",
+    title: "AI Product Image Editor for E-commerce Sellers | EditImages",
     description:
-      "Prepare marketplace image packs locally and edit product-image text with focused workflows.",
+      "Replace wording exactly or use focused AI edits, review the result, and prepare Amazon, Etsy, and eBay exports.",
     type: "website",
     locale: "en_US",
     url: "https://editimages.app",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "EditImages",
-    description: "Prepare marketplace image packs locally and edit product-image text.",
+    description: "Replace product-image wording exactly or use focused AI tasks, then prepare marketplace exports.",
   },
   robots: "index, follow",
   alternates: {

@@ -66,7 +66,7 @@ const faqs = [
   {
     question: "Does it restore the original background behind the text?",
     answer:
-      "No. The current MVP uses a colored overlay and does not promise background restoration.",
+      "The free local overlay uses a flat color. The same editor now offers a separate, credit-based AI background task when you want the surrounding image rebuilt.",
   },
   {
     question: "Can it match the original font automatically?",
@@ -180,9 +180,10 @@ export default function ReplaceTextOnProductImagePage() {
         <aside className="border-l-4 border-amber-400 bg-amber-50 p-6 text-amber-950">
           <h2 className="text-lg font-bold">Know the workflow limits</h2>
           <p className="mt-3 text-sm leading-6">
-            The editor does not detect text, match fonts, translate copy, remove
-            objects, restore a hidden background, or redraw an image with AI. A
-            flat overlay may remain visible on patterned or detailed areas.
+            The free local editor does not detect text or match fonts, and a flat
+            overlay may remain visible on patterned areas. The editor also offers
+            separate AI tasks for authorized overlays, cleanup, backgrounds, and
+            product scenes. Review every AI result before publishing.
           </p>
         </aside>
       </section>

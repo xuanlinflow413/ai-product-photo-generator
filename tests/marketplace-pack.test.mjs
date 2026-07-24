@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import JSZip from "jszip";
 
 const pack = await import("../lib/marketplace-pack.ts");
+const pageSource = await readFile(new URL("../app/marketplace-image-fixer/page.tsx", import.meta.url), "utf8");
 
 const file = (type = "image/jpeg", size = 1000, name = "Product Photo.PNG") => ({ type, size, name });
 
@@ -106,4 +108,33 @@ test("pack success events are emitted once per prepared pack key", () => {
   assert.equal(pack.isNewPackEvent(null, "amazon:1:blob-1"), true);
   assert.equal(pack.isNewPackEvent("amazon:1:blob-1", "amazon:1:blob-1"), false);
   assert.equal(pack.isNewPackEvent("amazon:1:blob-1", "etsy:1:blob-2"), true);
+});
+
+test("marketplace page invalidates stale processing runs when inputs change", () => {
+  assert.match(pageSource, /const processingRunRef = useRef\(0\)/);
+  assert.equal(pageSource.match(/processingRunRef\.current \+= 1/g)?.length, 4);
+  assert.match(pageSource, /if \(processingRunRef\.current !== run\) \{\s*revokeProcessedImages\(next\);\s*return;/);
+  assert.match(pageSource, /if \(processingRunRef\.current !== run\) return;\s*setError/);
+});
+
+test("marketplace page releases source and partial output URLs on every failure path", () => {
+  assert.match(pageSource, /image\.onerror = \(\) => \{\s*URL\.revokeObjectURL\(url\);\s*reject/);
+  assert.match(pageSource, /finally \{\s*URL\.revokeObjectURL\(url\);\s*\}/);
+  assert.match(pageSource, /Promise\.allSettled/);
+  assert.match(pageSource, /catch \(processingError\) \{\s*revokeProcessedImages\(next\);/);
+});
+
+test("marketplace page constrains overlong original filenames at narrow widths", () => {
+  assert.match(pageSource, /<div className="min-w-0 space-y-6">/);
+  assert.match(pageSource, /<ul className="[^"]*max-w-full[^"]*overflow-hidden/);
+  assert.match(pageSource, /<li[^>]*className="[^"]*min-w-0[^"]*max-w-full[^"]*overflow-hidden/);
+  assert.match(pageSource, /title=\{file\.name\} className="[^"]*min-w-0[^"]*flex-1[^"]*truncate/);
+});
+
+test("marketplace post-export account CTA is gated on a completed ZIP", () => {
+  assert.match(pageSource, /const \[exportComplete, setExportComplete\] = useState\(false\)/);
+  assert.match(pageSource, /setExportComplete\(true\)/);
+  assert.match(pageSource, /\{exportComplete && account !== "checking" &&/);
+  assert.match(pageSource, /marketplace_export_sign_in/);
+  assert.match(pageSource, /marketplace_export_account/);
 });

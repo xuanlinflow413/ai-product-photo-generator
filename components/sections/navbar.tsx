@@ -9,7 +9,7 @@ export function Navbar() {
 
   const navLinks = [
     { label: "Resources", href: "/resources/" },
-    { label: "Scene Demo", href: "#demo" },
+    { label: "Marketplace Guide", href: "/resize-product-images-for-marketplaces/" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Pricing", href: "#pricing" },
     { label: "FAQ", href: "#faq" },

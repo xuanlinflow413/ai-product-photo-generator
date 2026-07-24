@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 const url = "https://editimages.app/marketplace-image-fixer/";
 
 export const metadata: Metadata = {
-  title: "Marketplace Image Fixer | EditImages",
-  description: "Prepare product images for Amazon, Etsy, and eBay with local browser processing.",
+  title: "Multi-Marketplace Image Pack Maker | EditImages",
+  description: "Process one local image batch into separate Amazon, Etsy, and eBay folders, a manifest, and one organized ZIP.",
   alternates: { canonical: url },
   openGraph: {
-    title: "Marketplace Image Fixer | EditImages",
-    description: "Prepare product images for Amazon, Etsy, and eBay with local browser processing.",
+    title: "Multi-Marketplace Image Pack Maker | EditImages",
+    description: "Process one local image batch into separate Amazon, Etsy, and eBay folders, a manifest, and one organized ZIP.",
     url,
     type: "website",
   },
@@ -22,6 +22,6 @@ export default function MarketplaceImageFixerLayout({ children }: Readonly<{ chi
     url,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web browser",
-    description: "Prepare product images for Amazon, Etsy, and eBay with local browser processing.",
+    description: "Process one local image batch into separate Amazon, Etsy, and eBay folders, a manifest, and one organized ZIP.",
   }) }} /></>;
 }

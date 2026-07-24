@@ -8,10 +8,15 @@ const sitemap = await readFile(new URL("../app/sitemap.ts", import.meta.url), "u
 const accountLayout = await readFile(new URL("../app/account/layout.tsx", import.meta.url), "utf8");
 const loginLayout = await readFile(new URL("../app/login/layout.tsx", import.meta.url), "utf8");
 const aiPage = await readFile(new URL("../app/ai-product-photo/page.tsx", import.meta.url), "utf8");
+const hero = await readFile(new URL("../components/sections/hero.tsx", import.meta.url), "utf8");
+const workspace = await readFile(new URL("../components/sections/tool-workspace.tsx", import.meta.url), "utf8");
+const faq = await readFile(new URL("../components/sections/faq.tsx", import.meta.url), "utf8");
+const editor = await readFile(new URL("../app/edit-text-in-product-image/page.tsx", import.meta.url), "utf8");
+const editorLayout = await readFile(new URL("../app/edit-text-in-product-image/layout.tsx", import.meta.url), "utf8");
 
 test("root metadata describes live marketplace and text workflows", () => {
   assert.doesNotMatch(layout, /AI product photo generator|Shopify product image generator|AI-generated product photos/i);
-  assert.match(layout, /Prepare Amazon, Etsy, and eBay image packs locally/);
+  assert.match(layout, /AI product image editor for e-commerce sellers/i);
   assert.match(layout, /card: "summary"/);
 });
 
@@ -26,4 +31,18 @@ test("private routes are not indexable and unsupported AI page is removed from s
 test("sitemap uses a fixed content date instead of build-time freshness", () => {
   assert.match(sitemap, /const contentDate = "2026-07-18"/);
   assert.doesNotMatch(sitemap, /lastModified:\s*new Date\(\)/);
+});
+
+test("homepage leads with real marketplace outcomes instead of the mock scene demo", () => {
+  assert.match(hero, /Edit Product Images With AI/);
+  assert.match(hero, /Edit a product image/);
+  assert.match(hero, /One credit per successful AI edit/);
+  assert.match(workspace, /AI background and scene/);
+  assert.doesNotMatch(workspace, /Scene demo/i);
+  assert.match(faq, /Are my product images uploaded\?/);
+  assert.match(faq, /manifest\.json/);
+  assert.match(editor, /remove_owned_overlay/);
+  assert.match(editor, /not for removing third-party watermarks/);
+  assert.match(editor, /Change background/);
+  assert.match(editorLayout, /AI Product Image Editor/);
 });

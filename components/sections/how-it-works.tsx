@@ -6,23 +6,23 @@ const steps = [
   {
     number: "01",
     icon: LayoutTemplate,
-    title: "Pick the Right Workflow",
+    title: "Choose an AI edit",
     description:
-      "Start with the marketplace pack workflow for repeat exports, the text editor for wording changes, or the optional scene demo for concept previews.",
+      "Upload a product image and choose text, overlay, cleanup, background, or scene work. The editor keeps the task focused.",
   },
   {
     number: "02",
     icon: SlidersHorizontal,
-    title: "Prepare the Asset Locally",
+    title: "Describe the change",
     description:
-      "Resize for Amazon, Etsy, and eBay presets or place a replacement text overlay directly in the browser without uploading the source file.",
+      "Give a short instruction and confirm you own or are authorized to edit the image when removing an overlay.",
   },
   {
     number: "03",
     icon: Download,
-    title: "Export What You Need",
+    title: "Review, then export",
     description:
-      "Download structured marketplace folders, PNG/JPG edits, or use credits only when a cloud action is available in your account.",
+      "Check the AI result against the source and listing requirements, then export the image or prepare marketplace folders locally.",
   },
 ];
 
